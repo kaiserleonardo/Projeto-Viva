@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V.I.V.A - Acessibilidade</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1>Projeto V.I.V.A</h1>
+            <p>Visualização Ilustrada para a Valorização da Aprendizagem</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <label for="textoEntrada">O que você aprendeu hoje?</label>
+                <textarea id="textoEntrada" placeholder="Ex: A Terra gira em torno do Sol..."></textarea>
+                
+                <div class="buttons">
+                    <button id="btnVivificar" class="primary-btn">✨ Vivificar (Gerar Imagem)</button>
+                    <button id="btnOuvir" class="secondary-btn">🔊 Ouvir Texto</button>
+                </div>
+            </div>
+
+            <div id="resultado" class="result-section">
+                <div id="loader" class="hidden"></div>
+                <p id="feedback-txt">Aguardando conteúdo...</p>
+                <img id="imagemGerada" src="" alt="Ilustração educativa" class="hidden">
+            </div>
+        </main>
+
+        <footer>
+            Colégio Estadual Rui Barbosa - Educação Inclusiva
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
