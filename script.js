@@ -13,30 +13,39 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
         return;
     }
 
-    // Início do carregamento
+    // Início do carregamento visual
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "O V.I.V.A está processando sua imagem...";
+    feedback.innerText = "O V.I.V.A está processando a melhor imagem...";
 
-    // 1. Limpeza de texto: pega a palavra mais significativa
-    const conectores = ["para", "com", "uma", "sobre", "pelo", "pela", "mais"];
+    // --- LÓGICA DE TRATAMENTO DE TEXTO ---
+    // Remove pontuação e palavras que "atrapalham" a busca da IA
+    const stopWords = ["para", "com", "uma", "sobre", "pelo", "pela", "mais", "está", "estão", "coisa"];
     let palavras = texto.toLowerCase()
-        .replace(/[.,!?;:]/g, "") // Remove pontuação
+        .replace(/[.,!?;:]/g, "") 
         .split(/\s+/)
-        .filter(p => p.length > 3 && !conectores.includes(p));
+        .filter(p => p.length > 3 && !stopWords.includes(p));
 
-    // Se o filtro limpar tudo, pega a maior palavra do texto original
-    let termoBusca = palavras.length > 0 ? palavras[0] : texto.split(" ").sort((a,b) => b.length - a.length)[0];
+    // Define o termo de busca (tenta usar as duas primeiras palavras importantes)
+    let termoBusca = palavras.length > 0 ? palavras.slice(0, 2).join(" ") : texto.split(" ")[0];
 
     try {
-        // TENTATIVA 1: Buscar Ilustração (Estilo desenho para TEA)
-        let url = `https://pixabay.com/api/?key=${API_KEY}&q=${encodeURIComponent(termoBusca)}&image_type=illustration&lang=pt&safesearch=true`;
+        // 1ª TENTATIVA: Busca Ilustração (Melhor para TEA/TGD)
+        let url = `https://pixabay.com/api/?key=${API_KEY}&q=${encodeURIComponent(termoBusca)}&image_type=illustration&lang=pt&safesearch=true&category=education`;
         let response = await fetch(url);
         let data = await response.json();
 
-        // TENTATIVA 2: Se não achar ilustração, busca foto real
+        // 2ª TENTATIVA: Se não achou desenho, busca Foto Real
         if (!data.hits || data.hits.length === 0) {
             url = `https://pixabay.com/api/?key=${API_KEY}&q=${encodeURIComponent(termoBusca)}&image_type=photo&lang=pt&safesearch=true`;
+            response = await fetch(url);
+            data = await response.json();
+        }
+
+        // 3ª TENTATIVA: Se ainda não achou, simplifica a busca para apenas UMA palavra
+        if ((!data.hits || data.hits.length === 0) && palavras.length > 1) {
+            termoBusca = palavras[0];
+            url = `https://pixabay.com/api/?key=${API_KEY}&q=${encodeURIComponent(termoBusca)}&image_type=illustration&lang=pt`;
             response = await fetch(url);
             data = await response.json();
         }
@@ -44,14 +53,14 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
         if (data.hits && data.hits.length > 0) {
             const linkImagem = data.hits[0].largeImageURL;
             
-            // Pré-carregamento da imagem para evitar erro de exibição
+            // Garante que a imagem carregou antes de mostrar na tela
             const imgTemp = new Image();
             imgTemp.src = linkImagem;
             imgTemp.onload = () => {
                 imagem.src = linkImagem;
                 imagem.classList.remove('hidden');
                 loader.classList.add('hidden');
-                feedback.innerText = `Sucesso! Mostrando: ${termoBusca}`;
+                feedback.innerText = `Mostrando resultado para: ${termoBusca.toUpperCase()}`;
             };
         } else {
             throw new Error("Nada encontrado");
@@ -59,18 +68,19 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
 
     } catch (error) {
         loader.classList.add('hidden');
-        feedback.innerText = "❌ Não encontramos uma imagem para esse termo. Tente uma palavra mais simples.";
+        feedback.innerText = "❌ Não encontramos uma imagem. Tente usar termos simples (ex: Célula, Vulcão, Brasil).";
+        console.error("Erro na busca:", error);
     }
 });
 
-// Botão Ouvir (Sintetizador de Voz)
+// Função de voz (Acessibilidade Auditiva)
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
-        window.speechSynthesis.cancel(); // Para o que estiver falando
+        window.speechSynthesis.cancel(); 
         const fala = new SpeechSynthesisUtterance(texto);
         fala.lang = 'pt-BR';
-        fala.rate = 0.9; 
+        fala.rate = 0.85; 
         window.speechSynthesis.speak(fala);
     }
 });
