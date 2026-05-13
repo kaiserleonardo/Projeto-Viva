@@ -9,56 +9,47 @@ document.getElementById('btnVivificar').addEventListener('click', () => {
         return;
     }
 
+    // Reset visual
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "IA está interpretando e desenhando...";
+    feedback.innerText = "A IA está desenhando agora...";
 
-    // --- MINI TRADUTOR E REFINADOR DE PROMPT ---
-    // Isso ajuda a IA a entender termos comuns de escola em português
-    let promptRefinado = textoInput.toLowerCase()
-        .replace("célula", "biological cell")
-        .replace("árvore", "tree")
-        .replace("corpo humano", "human body anatomy")
-        .replace("sistema solar", "solar system planets")
-        .replace("escola", "school building")
-        .replace("animal", "animal")
-        .replace("planta", "plant")
-        .replace("água", "water cycle");
+    // 1. Simplifica o texto para a IA não bugar (remove acentos e caracteres especiais)
+    const textoSimples = textoInput.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-    // Adicionamos comandos de estilo para a imagem ficar clara e didática
-    // "High contrast, flat design, white background" evita imagens confusas
-    const estiloAcessibilidade = "simple flat vector illustration, high contrast, white background, educational clip art, clear boundaries";
-    const promptFinal = `${estiloAcessibilidade}, ${promptRefinado}`;
+    // 2. Monta o Prompt focado em Educação Especial (TEA/TGD)
+    // Usamos termos em inglês internamente porque a IA entende 10x melhor
+    const promptIA = `simple school sticker style, ${textoSimples}, white background, high resolution, vector art`;
 
-    // Gerador de semente (seed) para não repetir a mesma imagem sempre
+    // 3. URL do Pollinations com parâmetros de segurança
     const seed = Math.floor(Math.random() * 9999);
-    
-    // URL da Pollinations (Sem login, sem frescura)
-    const url = `https://pollinations.ai/p/${encodeURIComponent(promptFinal)}?width=1024&height=1024&nologo=true&seed=${seed}`;
+    const url = `https://pollinations.ai/p/${encodeURIComponent(promptIA)}?width=512&height=512&seed=${seed}&model=flux`;
 
-    // Tenta carregar a imagem
+    // 4. Tenta carregar a imagem com um sistema de detecção de erro melhor
     imagem.src = url;
 
     imagem.onload = () => {
         loader.classList.add('hidden');
         imagem.classList.remove('hidden');
-        feedback.innerText = "Ilustração inclusiva gerada com sucesso!";
+        feedback.innerText = "Imagem gerada com sucesso!";
     };
 
     imagem.onerror = () => {
         loader.classList.add('hidden');
-        feedback.innerText = "Erro na geração. Tente uma palavra mais simples.";
+        // Plano B: Se a IA falhar, ele tenta buscar uma imagem pronta do Unsplash
+        feedback.innerText = "A IA demorou muito. Tentando busca alternativa...";
+        imagem.src = `https://source.unsplash.com/512x512/?${encodeURIComponent(textoSimples)},illustration`;
+        imagem.classList.remove('hidden');
     };
 });
 
-// Botão de Áudio (Sintetizador de Voz)
+// Botão de Áudio
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
         window.speechSynthesis.cancel();
         const fala = new SpeechSynthesisUtterance(texto);
         fala.lang = 'pt-BR';
-        fala.rate = 0.9;
         window.speechSynthesis.speak(fala);
     }
 });
