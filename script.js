@@ -1,49 +1,48 @@
 document.getElementById('btnVivificar').addEventListener('click', () => {
-    const textoInput = document.getElementById('textoEntrada').value.trim();
+    const textoEntrada = document.getElementById('textoEntrada').value.trim();
     const loader = document.getElementById('loader');
     const imagem = document.getElementById('imagemGerada');
     const feedback = document.getElementById('feedback-txt');
 
-    if (!textoInput) {
-        alert("Por favor, digite o conteúdo da aula.");
+    if (!textoEntrada) {
+        alert("Por favor, digite o conceito que deseja ilustrar.");
         return;
     }
 
-    // Reset visual
+    // Estado visual de carregamento
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "A IA está desenhando agora...";
+    feedback.innerText = "A inteligência artificial está desenhando...";
 
-    // 1. Simplifica o texto para a IA não bugar (remove acentos e caracteres especiais)
-    const textoSimples = textoInput.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    // 1. Tratamento do Texto: Remove acentos para evitar erro na URL
+    const promptLimpo = textoEntrada.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
+    // 2. Engenharia de Prompt: Forçamos um estilo didático e limpo
+    // Isso garante que a IA não crie algo confuso, focando em alunos com TEA/TGD
+    const promptFinal = `simple educational illustration, flat design, white background, high contrast, ${promptLimpo}`;
 
-    // 2. Monta o Prompt focado em Educação Especial (TEA/TGD)
-    // Usamos termos em inglês internamente porque a IA entende 10x melhor
-    const promptIA = `simple school sticker style, ${textoSimples}, white background, high resolution, vector art`;
+    // 3. Semente aleatória: Garante que cada clique gere uma imagem inédita
+    const seed = Math.floor(Math.random() * 999999);
+    
+    // 4. URL de Geração (IA Generativa Direta)
+    const urlGeradora = `https://pollinations.ai/p/${encodeURIComponent(promptFinal)}?width=1024&height=1024&nologo=true&seed=${seed}`;
 
-    // 3. URL do Pollinations com parâmetros de segurança
-    const seed = Math.floor(Math.random() * 9999);
-    const url = `https://pollinations.ai/p/${encodeURIComponent(promptIA)}?width=512&height=512&seed=${seed}&model=flux`;
-
-    // 4. Tenta carregar a imagem com um sistema de detecção de erro melhor
-    imagem.src = url;
+    // 5. Atribuição e verificação de carregamento
+    imagem.src = urlGeradora;
 
     imagem.onload = () => {
         loader.classList.add('hidden');
         imagem.classList.remove('hidden');
-        feedback.innerText = "Imagem gerada com sucesso!";
+        feedback.innerText = "Ilustração exclusiva gerada por IA!";
     };
 
     imagem.onerror = () => {
         loader.classList.add('hidden');
-        // Plano B: Se a IA falhar, ele tenta buscar uma imagem pronta do Unsplash
-        feedback.innerText = "A IA demorou muito. Tentando busca alternativa...";
-        imagem.src = `https://source.unsplash.com/512x512/?${encodeURIComponent(textoSimples)},illustration`;
-        imagem.classList.remove('hidden');
+        feedback.innerText = "Erro ao processar imagem. Tente uma palavra mais simples.";
     };
 });
 
-// Botão de Áudio
+// Botão de Áudio (Acessibilidade)
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
