@@ -5,28 +5,27 @@ document.getElementById('btnVivificar').addEventListener('click', () => {
     const feedback = document.getElementById('feedback-txt');
 
     if (!textoEntrada) {
-        alert("Por favor, digite o conceito da aula.");
+        alert("Por favor, digite o conteúdo da aula.");
         return;
     }
 
-    // Estado visual de carregamento
+    // Estado visual
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    
-    // Aviso sincero para o usuário não achar que travou
-    feedback.innerText = "A IA está desenhando... Isso pode levar de 10 a 20 segundos!";
+    feedback.innerText = "O V.I.V.A está interpretando sua frase completa...";
 
-    // 1. Limpa o texto (remove acentos para o link não quebrar)
-    const promptLimpo = textoEntrada.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    // 1. Tratamento de texto: Mantém a frase toda, só tira os acentos
+    // Exemplo: "Célula animal procarionte" vira "Celula animal procarionte"
+    const fraseSemAcento = textoEntrada.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     
-    // 2. Monta o comando focado em TGD/TEA (simples e direto)
-    const promptFinal = `simple educational illustration, flat design, white background, ${promptLimpo}`;
+    // 2. Monta o Prompt com a frase INTEIRA
+    const promptFinal = `educational illustration, simple flat design, white background, ${fraseSemAcento}`;
 
-    // 3. NOVO ENDPOINT (Muito mais rápido e não trava o navegador)
+    // 3. Link da IA (Gerador de imagem real)
     const seed = Math.floor(Math.random() * 99999);
     const urlGeradora = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=768&height=768&seed=${seed}&nologo=true`;
 
-    // 4. Carrega a imagem
+    // 4. Carrega a imagem no site
     imagem.src = urlGeradora;
 
     imagem.onload = () => {
@@ -37,11 +36,11 @@ document.getElementById('btnVivificar').addEventListener('click', () => {
 
     imagem.onerror = () => {
         loader.classList.add('hidden');
-        feedback.innerText = "O servidor da IA falhou. Clique em Vivificar novamente.";
+        feedback.innerText = "Erro ao processar. Tente novamente.";
     };
 });
 
-// Botão de Áudio (Acessibilidade)
+// Acessibilidade: Lê o texto completo para o aluno
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
