@@ -1,5 +1,5 @@
 document.getElementById('btnVivificar').addEventListener('click', () => {
-    const textoEntrada = document.getElementById('textoEntrada').value.trim();
+    const textoEntrada = document.getElementById('textoEntrada').value.trim().toLowerCase();
     const loader = document.getElementById('loader');
     const imagem = document.getElementById('imagemGerada');
     const feedback = document.getElementById('feedback-txt');
@@ -9,38 +9,52 @@ document.getElementById('btnVivificar').addEventListener('click', () => {
         return;
     }
 
-    // Estado visual
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "O V.I.V.A está interpretando sua frase completa...";
+    feedback.innerText = "Traduzindo e desenhando...";
 
-    // 1. Tratamento de texto: Mantém a frase toda, só tira os acentos
-    // Exemplo: "Célula animal procarionte" vira "Celula animal procarionte"
-    const fraseSemAcento = textoEntrada.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    // --- DICIONÁRIO DE TRADUÇÃO PEDAGÓGICA ---
+    // Isso garante que a IA entenda termos complexos em português
+    let promptTraduzido = textoEntrada
+        .replace(/célula/g, "biological cell")
+        .replace(/corpo humano/g, "human body anatomy")
+        .replace(/sistema solar/g, "solar system")
+        .replace(/planetas/g, "planets")
+        .replace(/coração/g, "human heart")
+        .replace(/pulmão/g, "lungs")
+        .replace(/plantas/g, "plants")
+        .replace(/animais/g, "animals")
+        .replace(/vulcão/g, "volcano")
+        .replace(/egito/g, "ancient egypt")
+        .replace(/história/g, "history")
+        .replace(/matemática/g, "math")
+        .replace(/geometria/g, "geometry shapes");
+
+    // Estilo fixo para Acessibilidade (TEA/TGD)
+    const estiloAcessibilidade = "educational simple flat illustration, white background, high contrast, clear lines";
     
-    // 2. Monta o Prompt com a frase INTEIRA
-    const promptFinal = `educational illustration, simple flat design, white background, ${fraseSemAcento}`;
+    // Monta a frase final para a IA
+    const promptFinal = `${estiloAcessibilidade}, ${promptTraduzido}`;
 
-    // 3. Link da IA (Gerador de imagem real)
+    // Link do servidor estável
     const seed = Math.floor(Math.random() * 99999);
     const urlGeradora = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=768&height=768&seed=${seed}&nologo=true`;
 
-    // 4. Carrega a imagem no site
     imagem.src = urlGeradora;
 
     imagem.onload = () => {
         loader.classList.add('hidden');
         imagem.classList.remove('hidden');
-        feedback.innerText = "Ilustração gerada com sucesso!";
+        feedback.innerText = "Imagem gerada com alta precisão!";
     };
 
     imagem.onerror = () => {
         loader.classList.add('hidden');
-        feedback.innerText = "Erro ao processar. Tente novamente.";
+        feedback.innerText = "Erro ao gerar. Tente usar palavras mais simples.";
     };
 });
 
-// Acessibilidade: Lê o texto completo para o aluno
+// Acessibilidade: Voz em Português
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
