@@ -1,60 +1,58 @@
-document.getElementById('btnVivificar').addEventListener('click', () => {
-    const textoEntrada = document.getElementById('textoEntrada').value.trim().toLowerCase();
+const OPENAI_API_KEY = "SUA_CHAVE_AQUI"; // Substitua pela sua chave da OpenAI
+
+document.getElementById('btnVivificar').addEventListener('click', async () => {
+    const textoEntrada = document.getElementById('textoEntrada').value.trim();
     const loader = document.getElementById('loader');
     const imagem = document.getElementById('imagemGerada');
     const feedback = document.getElementById('feedback-txt');
 
     if (!textoEntrada) {
-        alert("Por favor, digite o conteúdo da aula.");
+        alert("Digite o que deseja gerar.");
         return;
     }
 
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "Traduzindo e desenhando...";
+    feedback.innerText = "A inteligência mais avançada está criando sua imagem...";
 
-    // --- DICIONÁRIO DE TRADUÇÃO PEDAGÓGICA ---
-    // Isso garante que a IA entenda termos complexos em português
-    let promptTraduzido = textoEntrada
-        .replace(/célula/g, "biological cell")
-        .replace(/corpo humano/g, "human body anatomy")
-        .replace(/sistema solar/g, "solar system")
-        .replace(/planetas/g, "planets")
-        .replace(/coração/g, "human heart")
-        .replace(/pulmão/g, "lungs")
-        .replace(/plantas/g, "plants")
-        .replace(/animais/g, "animals")
-        .replace(/vulcão/g, "volcano")
-        .replace(/egito/g, "ancient egypt")
-        .replace(/história/g, "history")
-        .replace(/matemática/g, "math")
-        .replace(/geometria/g, "geometry shapes");
+    try {
+        const response = await fetch("https://api.openai.com/v1/images/generations", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "dall-e-3", // O modelo mais potente
+                prompt: `Ilustração educacional em estilo flat design, traços claros, fundo branco, alta qualidade, tema: ${textoEntrada}`,
+                n: 1,
+                size: "1024x1024"
+            })
+        });
 
-    // Estilo fixo para Acessibilidade (TEA/TGD)
-    const estiloAcessibilidade = "educational simple flat illustration, white background, high contrast, clear lines";
-    
-    // Monta a frase final para a IA
-    const promptFinal = `${estiloAcessibilidade}, ${promptTraduzido}`;
+        const data = await response.json();
 
-    // Link do servidor estável
-    const seed = Math.floor(Math.random() * 99999);
-    const urlGeradora = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=768&height=768&seed=${seed}&nologo=true`;
+        if (data.error) {
+            throw new Error(data.error.message);
+        }
 
-    imagem.src = urlGeradora;
+        const urlGerada = data.data[0].url;
+        imagem.src = urlGerada;
 
-    imagem.onload = () => {
+        imagem.onload = () => {
+            loader.classList.add('hidden');
+            imagem.classList.remove('hidden');
+            feedback.innerText = "Imagem gerada com DALL-E 3!";
+        };
+
+    } catch (error) {
+        console.error(error);
         loader.classList.add('hidden');
-        imagem.classList.remove('hidden');
-        feedback.innerText = "Imagem gerada com alta precisão!";
-    };
-
-    imagem.onerror = () => {
-        loader.classList.add('hidden');
-        feedback.innerText = "Erro ao gerar. Tente usar palavras mais simples.";
-    };
+        feedback.innerText = "Erro: Verifique seus créditos ou a chave da API.";
+    }
 });
 
-// Acessibilidade: Voz em Português
+// Botão de Áudio
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
