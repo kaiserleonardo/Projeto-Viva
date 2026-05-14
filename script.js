@@ -5,40 +5,39 @@ document.getElementById('btnVivificar').addEventListener('click', () => {
     const feedback = document.getElementById('feedback-txt');
 
     if (!textoEntrada) {
-        alert("Por favor, digite o conceito que deseja ilustrar.");
+        alert("Por favor, digite o conceito da aula.");
         return;
     }
 
     // Estado visual de carregamento
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "A inteligência artificial está desenhando...";
+    
+    // Aviso sincero para o usuário não achar que travou
+    feedback.innerText = "A IA está desenhando... Isso pode levar de 10 a 20 segundos!";
 
-    // 1. Tratamento do Texto: Remove acentos para evitar erro na URL
+    // 1. Limpa o texto (remove acentos para o link não quebrar)
     const promptLimpo = textoEntrada.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     
-    // 2. Engenharia de Prompt: Forçamos um estilo didático e limpo
-    // Isso garante que a IA não crie algo confuso, focando em alunos com TEA/TGD
-    const promptFinal = `simple educational illustration, flat design, white background, high contrast, ${promptLimpo}`;
+    // 2. Monta o comando focado em TGD/TEA (simples e direto)
+    const promptFinal = `simple educational illustration, flat design, white background, ${promptLimpo}`;
 
-    // 3. Semente aleatória: Garante que cada clique gere uma imagem inédita
-    const seed = Math.floor(Math.random() * 999999);
-    
-    // 4. URL de Geração (IA Generativa Direta)
-    const urlGeradora = `https://pollinations.ai/p/${encodeURIComponent(promptFinal)}?width=1024&height=1024&nologo=true&seed=${seed}`;
+    // 3. NOVO ENDPOINT (Muito mais rápido e não trava o navegador)
+    const seed = Math.floor(Math.random() * 99999);
+    const urlGeradora = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=768&height=768&seed=${seed}&nologo=true`;
 
-    // 5. Atribuição e verificação de carregamento
+    // 4. Carrega a imagem
     imagem.src = urlGeradora;
 
     imagem.onload = () => {
         loader.classList.add('hidden');
         imagem.classList.remove('hidden');
-        feedback.innerText = "Ilustração exclusiva gerada por IA!";
+        feedback.innerText = "Ilustração gerada com sucesso!";
     };
 
     imagem.onerror = () => {
         loader.classList.add('hidden');
-        feedback.innerText = "Erro ao processar imagem. Tente uma palavra mais simples.";
+        feedback.innerText = "O servidor da IA falhou. Clique em Vivificar novamente.";
     };
 });
 
