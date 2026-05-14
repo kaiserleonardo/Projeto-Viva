@@ -62,8 +62,8 @@ button {
     transition: 0.3s;
 }
 
-.primary-btn { background: #4caf50; color: white; }
-.secondary-btn { background: #ffc107; color: #333; }
+.primary-btn { background: #043968; color: white; }
+.secondary-btn { background: #07b9ff; color: #333; }
 
 button:hover { opacity: 0.8; transform: translateY(-2px); }
 
