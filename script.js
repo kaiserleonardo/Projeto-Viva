@@ -1,4 +1,4 @@
-const POLLINATIONS_API_KEY = "sk_Nqx1YGWzxsCvXumU8OVgKypzc7s2r77E";
+const OPENAI_API_KEY = "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";
 
 document.getElementById('btnVivificar').addEventListener('click', async () => {
     const textoEntrada = document.getElementById('textoEntrada').value.trim();
@@ -7,63 +7,58 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
     const feedback = document.getElementById('feedback-txt');
 
     if (!textoEntrada) {
-        alert("Por favor, digite o tema da aula.");
+        alert("Por favor, digite o conteúdo da aula.");
         return;
     }
 
+    // Preparação visual
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "Acessando modelo VIP de alta qualidade...";
+    feedback.innerText = "A inteligência DALL-E 3 está criando sua imagem personalizada...";
 
-    // 1. Tradutor automático
-    let conceitoIA = textoEntrada.toLowerCase()
-        .replace(/célula/g, "biological cell structure")
-        .replace(/corpo humano/g, "human anatomy")
-        .replace(/sistema solar/g, "solar system planets")
-        .replace(/coração/g, "human heart anatomy")
-        .replace(/plantas/g, "plant biology")
-        .replace(/egito/g, "ancient egypt pyramids");
-
-    // 2. Novo Prompt: Focado no ponto forte do FLUX (3D, super detalhado, sem texto)
-    const promptFinal = `High-end 3D educational render, ultra-detailed textbook illustration, clean white background, high resolution, cinematic lighting. Topic: ${conceitoIA}. STRICTLY NO TEXT, NO WORDS, NO LABELS in the image.`;
-    
-    const seed = Math.floor(Math.random() * 999999);
-
-    // 3. O link original do Pollinations
-    const urlOriginal = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
-
-    // 4. O Túnel Proxy (Isso evita que o navegador bloqueie a sua chave)
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(urlOriginal)}`;
+    // Prompt otimizado para Educação Especial (TEA/TGD)
+    // O DALL-E 3 entende português perfeitamente, então não precisamos traduzir.
+    const promptFinal = `Ilustração educacional didática, estilo desenho 3D suave ou vetor limpo, fundo branco sólido, alto contraste, sem sombras complexas. Tema: ${textoEntrada}. IMPORTANTE: A imagem deve ser puramente visual. NÃO escreva nenhuma palavra, letra ou texto dentro da imagem.`;
 
     try {
-        // Agora fazemos o envio da chave pelo túnel!
-        const response = await fetch(proxyUrl, {
-            method: 'GET',
+        const response = await fetch("https://api.openai.com/v1/images/generations", {
+            method: "POST",
             headers: {
-                'Authorization': `Bearer ${POLLINATIONS_API_KEY}`
-            }
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "dall-e-3",
+                prompt: promptFinal,
+                n: 1,
+                size: "1024x1024",
+                quality: "standard"
+            })
         });
 
-        if (!response.ok) throw new Error("Erro na conexão VIP.");
+        const data = await response.json();
 
-        // Converte e exibe a imagem
-        const blob = await response.blob();
-        imagem.src = URL.createObjectURL(blob);
+        if (data.error) {
+            throw new Error(data.error.message);
+        }
+
+        const urlGerada = data.data[0].url;
+        imagem.src = urlGerada;
 
         imagem.onload = () => {
             loader.classList.add('hidden');
             imagem.classList.remove('hidden');
-            feedback.innerText = "Ilustração 3D VIP gerada com sucesso!";
+            feedback.innerText = "Ilustração profissional gerada com sucesso!";
         };
 
     } catch (error) {
-        console.error(error);
+        console.error("Erro na OpenAI:", error);
         loader.classList.add('hidden');
-        feedback.innerText = "Erro ao conectar. Tente novamente.";
+        feedback.innerText = "Erro: Verifique seu saldo na OpenAI ou a chave.";
     }
 });
 
-// Acessibilidade: Voz
+// Acessibilidade: Voz em Português
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
