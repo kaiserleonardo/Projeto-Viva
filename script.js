@@ -1,6 +1,6 @@
 const POLLINATIONS_API_KEY = "sk_Nqx1YGWzxsCvXumU8OVgKypzc7s2r77E";
 
-document.getElementById('btnVivificar').addEventListener('click', () => {
+document.getElementById('btnVivificar').addEventListener('click', async () => {
     const textoEntrada = document.getElementById('textoEntrada').value.trim();
     const loader = document.getElementById('loader');
     const imagem = document.getElementById('imagemGerada');
@@ -11,46 +11,59 @@ document.getElementById('btnVivificar').addEventListener('click', () => {
         return;
     }
 
-    // Preparação visual
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "Conectando ao servidor VIP (Pólen)...";
+    feedback.innerText = "Acessando modelo VIP de alta qualidade...";
 
-    // 1. MINI-TRADUTOR AUTOMÁTICO (Para a IA não errar o desenho)
+    // 1. Tradutor automático
     let conceitoIA = textoEntrada.toLowerCase()
-        .replace(/célula/g, "biological cell")
-        .replace(/corpo humano/g, "human body anatomy")
-        .replace(/sistema solar/g, "solar system")
-        .replace(/coração/g, "human heart")
-        .replace(/plantas/g, "plants")
-        .replace(/egito/g, "ancient egypt");
+        .replace(/célula/g, "biological cell structure")
+        .replace(/corpo humano/g, "human anatomy")
+        .replace(/sistema solar/g, "solar system planets")
+        .replace(/coração/g, "human heart anatomy")
+        .replace(/plantas/g, "plant biology")
+        .replace(/egito/g, "ancient egypt pyramids");
 
-    // 2. PROMPT DE ENGENHARIA "SEM TEXTO" (Blindado)
-    // Pedimos a ilustração perfeita, mas proibimos qualquer texto interno.
-    // Assim, removemos o problema de palavras em inglês ou erradas.
-    const promptFinal = `High-quality educational 2D vector illustration, simple flat design, white background, high contrast. Topic: ${conceitoIA}. NO TEXT, NO LABELS, NO LETTERS inside the image. Only clean visuals.`;
+    // 2. Novo Prompt: Focado no ponto forte do FLUX (3D, super detalhado, sem texto)
+    const promptFinal = `High-end 3D educational render, ultra-detailed textbook illustration, clean white background, high resolution, cinematic lighting. Topic: ${conceitoIA}. STRICTLY NO TEXT, NO WORDS, NO LABELS in the image.`;
     
     const seed = Math.floor(Math.random() * 999999);
 
-    // 3. URL DIRETA (Modelo VIP FLUX)
-    const urlGeradora = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=800&height=800&seed=${seed}&model=flux&nologo=true`;
+    // 3. O link original do Pollinations
+    const urlOriginal = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
 
-    // 4. CARREGAMENTO
-    imagem.src = urlGeradora;
+    // 4. O Túnel Proxy (Isso evita que o navegador bloqueie a sua chave)
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(urlOriginal)}`;
 
-    imagem.onload = () => {
+    try {
+        // Agora fazemos o envio da chave pelo túnel!
+        const response = await fetch(proxyUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${POLLINATIONS_API_KEY}`
+            }
+        });
+
+        if (!response.ok) throw new Error("Erro na conexão VIP.");
+
+        // Converte e exibe a imagem
+        const blob = await response.blob();
+        imagem.src = URL.createObjectURL(blob);
+
+        imagem.onload = () => {
+            loader.classList.add('hidden');
+            imagem.classList.remove('hidden');
+            feedback.innerText = "Ilustração 3D VIP gerada com sucesso!";
+        };
+
+    } catch (error) {
+        console.error(error);
         loader.classList.add('hidden');
-        imagem.classList.remove('hidden');
-        feedback.innerText = "Ilustração VIP gerada (Sem legendas erradas)!";
-    };
-
-    imagem.onerror = () => {
-        loader.classList.add('hidden');
-        feedback.innerText = "O servidor demorou. Clique novamente.";
-    };
+        feedback.innerText = "Erro ao conectar. Tente novamente.";
+    }
 });
 
-// Acessibilidade: Voz em Português
+// Acessibilidade: Voz
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
