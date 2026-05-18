@@ -11,48 +11,50 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
         return;
     }
 
+    // Tela de carregamento
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "Usando seus créditos de Pólen para gerar imagem VIP...";
+    feedback.innerText = "Gerando ilustração com prioridade VIP...";
 
-    // 1. Tratamento do texto
+    // Limpa os acentos para não quebrar o link
     const promptLimpo = textoEntrada.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const promptFinal = `educational illustration, simple flat design, white background, ${promptLimpo}`;
+    
+    // Comando para a IA desenhar no estilo educativo
+    const promptFinal = `educational illustration, simple flat design, white background, high contrast, ${promptLimpo}`;
     const seed = Math.floor(Math.random() * 99999);
 
-    // 2. URL da API (usando o modelo Flux que é o melhor)
+    // Link do modelo FLUX (O melhor que eles têm)
     const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=768&height=768&seed=${seed}&nologo=true&model=flux`;
 
     try {
-        // 3. Fazendo a requisição com a sua CHAVE NOVA
+        // Envia a sua chave secreta para furar a fila
         const response = await fetch(url, {
+            method: 'GET',
             headers: {
-                "Authorization": `Bearer ${POLLINATIONS_API_KEY}`
+                'Authorization': `Bearer ${POLLINATIONS_API_KEY}`
             }
         });
 
-        if (!response.ok) throw new Error("Erro na API ou chave inválida");
+        if (!response.ok) throw new Error("Erro na chave ou servidor");
 
-        // 4. Transforma a resposta em um link que o HTML entenda
+        // Transforma a resposta em imagem na tela
         const blob = await response.blob();
-        const objectURL = URL.createObjectURL(blob);
+        imagem.src = URL.createObjectURL(blob);
 
-        imagem.src = objectURL;
-        
         imagem.onload = () => {
             loader.classList.add('hidden');
             imagem.classList.remove('hidden');
-            feedback.innerText = "Imagem gerada com sucesso (Modo Pago)!";
+            feedback.innerText = "Ilustração gerada com sucesso!";
         };
 
     } catch (error) {
         console.error(error);
         loader.classList.add('hidden');
-        feedback.innerText = "Erro: Verifique se seus pólens caíram na conta.";
+        feedback.innerText = "Erro ao conectar. Verifique seus pólens.";
     }
 });
 
-// Acessibilidade Áudio
+// Botão de Áudio
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
