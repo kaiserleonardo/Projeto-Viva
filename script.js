@@ -1,4 +1,4 @@
-const OPENAI_API_KEY = "SUA_CHAVE_AQUI"; // Substitua pela sua chave da OpenAI
+const DEEPAI_API_KEY = "hmMTTRIw.nZK9GzankyONxemC9wzwD8ILh3tehwnW";
 
 document.getElementById('btnVivificar').addEventListener('click', async () => {
     const textoEntrada = document.getElementById('textoEntrada').value.trim();
@@ -7,52 +7,51 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
     const feedback = document.getElementById('feedback-txt');
 
     if (!textoEntrada) {
-        alert("Digite o que deseja gerar.");
+        alert("Por favor, digite o conteúdo da aula.");
         return;
     }
 
+    // Estado visual
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "A inteligência mais avançada está criando sua imagem...";
+    feedback.innerText = "A DeepAI está gerando sua imagem do zero...";
 
     try {
-        const response = await fetch("https://api.openai.com/v1/images/generations", {
+        // A DeepAI pede os dados em formato FormData
+        const formData = new FormData();
+        formData.append('text', `educational illustration, simple flat design, white background, ${textoEntrada}`);
+        formData.append('grid_size', '1');
+
+        const response = await fetch("https://api.deepai.org/api/text2img", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${OPENAI_API_KEY}`
+                "api-key": DEEPAI_API_KEY
             },
-            body: JSON.stringify({
-                model: "dall-e-3", // O modelo mais potente
-                prompt: `Ilustração educacional em estilo flat design, traços claros, fundo branco, alta qualidade, tema: ${textoEntrada}`,
-                n: 1,
-                size: "1024x1024"
-            })
+            body: formData
         });
 
         const data = await response.json();
 
-        if (data.error) {
-            throw new Error(data.error.message);
+        if (data.output_url) {
+            imagem.src = data.output_url;
+
+            imagem.onload = () => {
+                loader.classList.add('hidden');
+                imagem.classList.remove('hidden');
+                feedback.innerText = "Imagem gerada com sucesso pela DeepAI!";
+            };
+        } else {
+            throw new Error("Falha na resposta da API.");
         }
-
-        const urlGerada = data.data[0].url;
-        imagem.src = urlGerada;
-
-        imagem.onload = () => {
-            loader.classList.add('hidden');
-            imagem.classList.remove('hidden');
-            feedback.innerText = "Imagem gerada com DALL-E 3!";
-        };
 
     } catch (error) {
         console.error(error);
         loader.classList.add('hidden');
-        feedback.innerText = "Erro: Verifique seus créditos ou a chave da API.";
+        feedback.innerText = "Erro: Verifique seus créditos na DeepAI ou a conexão.";
     }
 });
 
-// Botão de Áudio
+// Botão de Áudio (Acessibilidade)
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
