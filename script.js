@@ -1,6 +1,6 @@
-const OPENAI_API_KEY = "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";
+const POLLINATIONS_API_KEY = "sk_Nqx1YGWzxsCvXumU8OVgKypzc7s2r77E";
 
-document.getElementById('btnVivificar').addEventListener('click', async () => {
+document.getElementById('btnVivificar').addEventListener('click', () => {
     const textoEntrada = document.getElementById('textoEntrada').value.trim();
     const loader = document.getElementById('loader');
     const imagem = document.getElementById('imagemGerada');
@@ -14,51 +14,39 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
     // Preparação visual
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "A inteligência DALL-E 3 está criando sua imagem personalizada...";
+    feedback.innerText = "Ativando modelo FLUX (Modo VIP)...";
 
-    // Prompt otimizado para Educação Especial (TEA/TGD)
-    // O DALL-E 3 entende português perfeitamente, então não precisamos traduzir.
-    const promptFinal = `Ilustração educacional didática, estilo desenho 3D suave ou vetor limpo, fundo branco sólido, alto contraste, sem sombras complexas. Tema: ${textoEntrada}. IMPORTANTE: A imagem deve ser puramente visual. NÃO escreva nenhuma palavra, letra ou texto dentro da imagem.`;
+    // 1. Prompt reforçado (Forçando a IA a ser inteligente)
+    // O Pollinations funciona melhor se o prompt for em inglês, então o código traduz o básico:
+    const promptBase = textoEntrada.toLowerCase()
+        .replace(/célula/g, "biological cell")
+        .replace(/corpo humano/g, "human anatomy")
+        .replace(/sistema solar/g, "solar system planets")
+        .replace(/coração/g, "human heart structure");
 
-    try {
-        const response = await fetch("https://api.openai.com/v1/images/generations", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "dall-e-3",
-                prompt: promptFinal,
-                n: 1,
-                size: "1024x1024",
-                quality: "standard"
-            })
-        });
+    const promptFinal = `High-quality educational 3D render, textbook style, white background. Topic: ${promptBase}. NO TEXT inside the image.`;
+    const seed = Math.floor(Math.random() * 999999);
 
-        const data = await response.json();
+    // 2. A URL MÁGICA: Aqui a gente passa a chave e o modelo FLUX (que gasta pólen)
+    // O segredo está no parâmetro &model=flux e no nologo=true
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux&key=${POLLINATIONS_API_KEY}`;
 
-        if (data.error) {
-            throw new Error(data.error.message);
-        }
+    // 3. Carregamento Direto (Não dá erro de conexão!)
+    imagem.src = url;
 
-        const urlGerada = data.data[0].url;
-        imagem.src = urlGerada;
-
-        imagem.onload = () => {
-            loader.classList.add('hidden');
-            imagem.classList.remove('hidden');
-            feedback.innerText = "Ilustração profissional gerada com sucesso!";
-        };
-
-    } catch (error) {
-        console.error("Erro na OpenAI:", error);
+    imagem.onload = () => {
         loader.classList.add('hidden');
-        feedback.innerText = "Erro: Verifique seu saldo na OpenAI ou a chave.";
-    }
+        imagem.classList.remove('hidden');
+        feedback.innerText = "Ilustração de alta qualidade gerada!";
+    };
+
+    imagem.onerror = () => {
+        loader.classList.add('hidden');
+        feedback.innerText = "Erro ao usar pólens. Tente novamente em instantes.";
+    };
 });
 
-// Acessibilidade: Voz em Português
+// Acessibilidade Áudio
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
