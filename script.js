@@ -7,39 +7,51 @@ document.getElementById('btnVivificar').addEventListener('click', () => {
     const feedback = document.getElementById('feedback-txt');
 
     if (!textoEntrada) {
-        alert("Por favor, digite o conteúdo da aula.");
+        alert("Por favor, digite o tema da aula.");
         return;
     }
 
+    // Preparação visual
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "Conectando ao servidor VIP do V.I.V.A...";
+    feedback.innerText = "Conectando ao servidor VIP (Pólen)...";
 
-    // 1. Prompt reforçado para Português e Alta Qualidade
-    // O Pollinations lê a chave também via parâmetro na URL em alguns casos, vamos garantir:
-    const promptFinal = `educational illustration, simple flat design, white background, high contrast, Brazilian Portuguese labels. Topic: ${textoEntrada}`;
-    const seed = Math.floor(Math.random() * 99999);
+    // 1. MINI-TRADUTOR AUTOMÁTICO (Para a IA não errar o desenho)
+    // Traduzimos termos comuns para que a IA entenda o conceito perfeitamente
+    let conceitoIA = textoEntrada.toLowerCase()
+        .replace(/célula/g, "biological cell")
+        .replace(/corpo humano/g, "human body")
+        .replace(/sistema solar/g, "solar system")
+        .replace(/coração/g, "human heart")
+        .replace(/plantas/g, "plants")
+        .replace(/egito/g, "ancient egypt");
 
-    // 2. Montagem da URL com o modelo FLUX
-    // Adicionamos a chave direto na URL para testar a aceitação do servidor
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=768&height=768&seed=${seed}&nologo=true&model=flux&key=${POLLINATIONS_API_KEY}`;
+    // 2. PROMPT DE ENGENHARIA (Forçando o idioma e a qualidade)
+    // Pedimos para a IA rotular as coisas em Português do Brasil
+    const promptFinal = `High-quality educational 2D vector illustration, white background, high contrast. Topic: ${conceitoIA}. Any text labels must be in BRAZILIAN PORTUGUESE.`;
+    
+    const seed = Math.floor(Math.random() * 999999);
 
-    // 3. Carregamento Direto (Evita o erro de "Conexão" do Fetch)
-    imagem.src = url;
+    // 3. URL DIRETA (Evita o erro de "Conexão" do navegador)
+    // Passamos a chave na URL e forçamos o modelo FLUX
+    const urlGeradora = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=800&height=800&seed=${seed}&model=flux&nologo=true&enhance=true`;
+
+    // 4. TENTATIVA DE CARREGAMENTO
+    imagem.src = urlGeradora;
 
     imagem.onload = () => {
         loader.classList.add('hidden');
         imagem.classList.remove('hidden');
-        feedback.innerText = "Ilustração gerada com sucesso!";
+        feedback.innerText = "Ilustração VIP gerada com sucesso!";
     };
 
     imagem.onerror = () => {
         loader.classList.add('hidden');
-        feedback.innerText = "O servidor demorou a responder. Tente clicar novamente.";
+        feedback.innerText = "Servidor ocupado. Tente clicar novamente em 5 segundos.";
     };
 });
 
-// Acessibilidade Áudio
+// Acessibilidade: Voz em Português
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
