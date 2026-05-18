@@ -1,4 +1,4 @@
-// CHAVE DE PÓLEN (Pollinations)
+// CONFIGURAÇÃO VIP POLLINATIONS
 const POLLINATIONS_API_KEY = "sk_Nqx1YGWzxsCvXumU8OVgKypzc7s2r77E";
 
 document.getElementById('btnVivificar').addEventListener('click', async () => {
@@ -8,35 +8,39 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
     const feedback = document.getElementById('feedback-txt');
 
     if (!textoEntrada) {
-        alert("Por favor, digite o conteúdo da aula.");
+        alert("Por favor, digite o tema da aula.");
         return;
     }
 
-    // Reset visual
+    // Reset de Interface
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "STATUS V.I.V.A: Gerando com Pólens (Modelo FLUX)...";
+    feedback.innerText = "Processando via FLUX Engine (Alta Precisão)...";
 
-    // Criando o comando para a IA
-    const promptFinal = `Professional educational 3D illustration, clean white background, high resolution. Topic: ${textoEntrada}. No text.`;
-    const seed = Math.floor(Math.random() * 999999);
+    // ENGENHARIA DE PROMPT BLINDADA
+    // Adicionamos termos técnicos que forçam a IA a usar bancos de dados científicos.
+    const instrucoesFixas = "Professional medical atlas illustration, 3D anatomical model, high detail, sharp focus, clean white background, high contrast, textbook style, scientific accuracy.";
+    const proibicoes = "NO text, NO labels, NO letters, NO blurry parts, NO artistic filters.";
+    
+    const promptFinal = `${instrucoesFixas} Topic: ${textoEntrada}. ${proibicoes}`;
+    
+    const seed = Math.floor(Math.random() * 9999999);
 
-    // URL formatada para usar seus créditos
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux`;
+    // URL OTIMIZADA: Aumentamos a resolução para o máximo do FLUX (1024)
+    // Passamos a chave diretamente para garantir o uso dos Pólens
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux&key=${POLLINATIONS_API_KEY}`;
 
     try {
-        // Tentativa de conexão VIP
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${POLLINATIONS_API_KEY}`
-            }
-        });
+        // Validação da conexão com os Pólens
+        const response = await fetch(url);
 
-        if (!response.ok) throw new Error("Erro de saldo nos Pólens ou conexão.");
+        if (!response.ok) throw new Error("Falha na conexão com o servidor VIP.");
 
+        // Carregamento da Imagem como Blob (mais estável para o navegador)
         const blob = await response.blob();
-        imagem.src = URL.createObjectURL(blob);
+        const imageObjectURL = URL.createObjectURL(blob);
+        
+        imagem.src = imageObjectURL;
 
         imagem.onload = () => {
             loader.classList.add('hidden');
@@ -45,20 +49,20 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
         };
 
     } catch (error) {
-        console.error(error);
+        console.error("Erro técnico:", error);
         loader.classList.add('hidden');
-        // Se este erro aparecer, saberemos que é problema de conexão ou saldo de pólen
-        feedback.innerText = "ERRO DE PÓLEN: " + error.message;
+        feedback.innerText = "Erro: " + error.message + ". Tente gerar novamente.";
     }
 });
 
-// Acessibilidade: Voz
+// ACESSIBILIDADE: VOZ
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
         window.speechSynthesis.cancel();
         const fala = new SpeechSynthesisUtterance(texto);
         fala.lang = 'pt-BR';
+        fala.rate = 0.9; // Um pouco mais lento para clareza
         window.speechSynthesis.speak(fala);
     }
 });
