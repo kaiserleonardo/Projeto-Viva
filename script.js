@@ -1,4 +1,4 @@
-const DEEPAI_API_KEY = "hmMTTRIw.nZK9GzankyONxemC9wzwD8ILh3tehwnW";
+const POLLINATIONS_API_KEY = "sk_Nqx1YGWzxsCvXumU8OVgKypzc7s2r77E";
 
 document.getElementById('btnVivificar').addEventListener('click', async () => {
     const textoEntrada = document.getElementById('textoEntrada').value.trim();
@@ -11,47 +11,48 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
         return;
     }
 
-    // Estado visual
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "A DeepAI está gerando sua imagem do zero...";
+    feedback.innerText = "Usando seus créditos de Pólen para gerar imagem VIP...";
+
+    // 1. Tratamento do texto
+    const promptLimpo = textoEntrada.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const promptFinal = `educational illustration, simple flat design, white background, ${promptLimpo}`;
+    const seed = Math.floor(Math.random() * 99999);
+
+    // 2. URL da API (usando o modelo Flux que é o melhor)
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=768&height=768&seed=${seed}&nologo=true&model=flux`;
 
     try {
-        // A DeepAI pede os dados em formato FormData
-        const formData = new FormData();
-        formData.append('text', `educational illustration, simple flat design, white background, ${textoEntrada}`);
-        formData.append('grid_size', '1');
-
-        const response = await fetch("https://api.deepai.org/api/text2img", {
-            method: "POST",
+        // 3. Fazendo a requisição com a sua CHAVE NOVA
+        const response = await fetch(url, {
             headers: {
-                "api-key": DEEPAI_API_KEY
-            },
-            body: formData
+                "Authorization": `Bearer ${POLLINATIONS_API_KEY}`
+            }
         });
 
-        const data = await response.json();
+        if (!response.ok) throw new Error("Erro na API ou chave inválida");
 
-        if (data.output_url) {
-            imagem.src = data.output_url;
+        // 4. Transforma a resposta em um link que o HTML entenda
+        const blob = await response.blob();
+        const objectURL = URL.createObjectURL(blob);
 
-            imagem.onload = () => {
-                loader.classList.add('hidden');
-                imagem.classList.remove('hidden');
-                feedback.innerText = "Imagem gerada com sucesso pela DeepAI!";
-            };
-        } else {
-            throw new Error("Falha na resposta da API.");
-        }
+        imagem.src = objectURL;
+        
+        imagem.onload = () => {
+            loader.classList.add('hidden');
+            imagem.classList.remove('hidden');
+            feedback.innerText = "Imagem gerada com sucesso (Modo Pago)!";
+        };
 
     } catch (error) {
         console.error(error);
         loader.classList.add('hidden');
-        feedback.innerText = "Erro: Verifique seus créditos na DeepAI ou a conexão.";
+        feedback.innerText = "Erro: Verifique se seus pólens caíram na conta.";
     }
 });
 
-// Botão de Áudio (Acessibilidade)
+// Acessibilidade Áudio
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
