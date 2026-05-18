@@ -17,37 +17,36 @@ document.getElementById('btnVivificar').addEventListener('click', () => {
     feedback.innerText = "Conectando ao servidor VIP (Pólen)...";
 
     // 1. MINI-TRADUTOR AUTOMÁTICO (Para a IA não errar o desenho)
-    // Traduzimos termos comuns para que a IA entenda o conceito perfeitamente
     let conceitoIA = textoEntrada.toLowerCase()
         .replace(/célula/g, "biological cell")
-        .replace(/corpo humano/g, "human body")
+        .replace(/corpo humano/g, "human body anatomy")
         .replace(/sistema solar/g, "solar system")
         .replace(/coração/g, "human heart")
         .replace(/plantas/g, "plants")
         .replace(/egito/g, "ancient egypt");
 
-    // 2. PROMPT DE ENGENHARIA (Forçando o idioma e a qualidade)
-    // Pedimos para a IA rotular as coisas em Português do Brasil
-    const promptFinal = `High-quality educational 2D vector illustration, white background, high contrast. Topic: ${conceitoIA}. Any text labels must be in BRAZILIAN PORTUGUESE.`;
+    // 2. PROMPT DE ENGENHARIA "SEM TEXTO" (Blindado)
+    // Pedimos a ilustração perfeita, mas proibimos qualquer texto interno.
+    // Assim, removemos o problema de palavras em inglês ou erradas.
+    const promptFinal = `High-quality educational 2D vector illustration, simple flat design, white background, high contrast. Topic: ${conceitoIA}. NO TEXT, NO LABELS, NO LETTERS inside the image. Only clean visuals.`;
     
     const seed = Math.floor(Math.random() * 999999);
 
-    // 3. URL DIRETA (Evita o erro de "Conexão" do navegador)
-    // Passamos a chave na URL e forçamos o modelo FLUX
-    const urlGeradora = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=800&height=800&seed=${seed}&model=flux&nologo=true&enhance=true`;
+    // 3. URL DIRETA (Modelo VIP FLUX)
+    const urlGeradora = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=800&height=800&seed=${seed}&model=flux&nologo=true`;
 
-    // 4. TENTATIVA DE CARREGAMENTO
+    // 4. CARREGAMENTO
     imagem.src = urlGeradora;
 
     imagem.onload = () => {
         loader.classList.add('hidden');
         imagem.classList.remove('hidden');
-        feedback.innerText = "Ilustração VIP gerada com sucesso!";
+        feedback.innerText = "Ilustração VIP gerada (Sem legendas erradas)!";
     };
 
     imagem.onerror = () => {
         loader.classList.add('hidden');
-        feedback.innerText = "Servidor ocupado. Tente clicar novamente em 5 segundos.";
+        feedback.innerText = "O servidor demorou. Clique novamente.";
     };
 });
 
