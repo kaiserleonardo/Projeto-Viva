@@ -1,49 +1,51 @@
-document.getElementById('btnVivificar').addEventListener('click', () => {
+// CHAVE API HUGGING FACE
+const HF_TOKEN = "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"; 
+
+document.getElementById('btnVivificar').addEventListener('click', async () => {
     const textoEntrada = document.getElementById('textoEntrada').value.trim();
     const loader = document.getElementById('loader');
     const imagem = document.getElementById('imagemGerada');
     const feedback = document.getElementById('feedback-txt');
 
     if (!textoEntrada) {
-        alert("O que vamos estudar hoje?");
+        alert("Por favor, digite o tema da aula.");
         return;
     }
 
+    // Preparação da interface
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "Buscando ilustração didática...";
+    feedback.innerText = "Solicitando imagem ao Hugging Face...";
 
-    // Engenharia de Prompt: Forçamos termos de fotografia e clareza
-    // Isso ajuda a evitar aquelas letras e desenhos "derretidos"
-    const promptFocado = `Educational 3D render of ${textoEntrada}, solid white background, high quality, sharp lines, isometric view, bright colors, masterpiece, no text, no blur.`;
-    
-    const seed = Math.floor(Math.random() * 999999);
-    
-    // Usaremos a URL direta que não costuma dar erro de bloqueio
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFocado)}?width=1024&height=1024&seed=${seed}&nologo=true`;
+    // Prompt otimizado: Simples e direto para evitar confusão da IA
+    const promptFinal = `Professional educational illustration of ${textoEntrada}, high quality, 3D render style, clean white background, vibrant colors, sharp focus, no text, no labels.`;
 
-    // Atribuir a URL diretamente ao SRC da imagem mata 90% dos problemas de conexão
-    imagem.src = url;
+    async function buscarImagem(dados) {
+        const response = await fetch(
+            "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+            {
+                headers: { 
+                    "Authorization": `Bearer ${HF_TOKEN}`,
+                    "Content-Type": "application/json"
+                },
+                method: "POST",
+                body: JSON.stringify(dados),
+            }
+        );
 
-    imagem.onload = () => {
-        loader.classList.add('hidden');
-        imagem.classList.remove('hidden');
-        feedback.innerText = "Ilustração carregada!";
-    };
+        // Se o modelo estiver carregando (Erro 503), ele tenta de novo em 5 segundos
+        if (response.status === 503) {
+            feedback.innerText = "O servidor está ligando... aguarde 5 segundos.";
+            await new Promise(res => setTimeout(res, 5000));
+            return buscarImagem(dados);
+        }
 
-    imagem.onerror = () => {
-        loader.classList.add('hidden');
-        feedback.innerText = "Erro ao carregar. Tente novamente.";
-    };
-});
+        if (!response.ok) {
+            const erroJson = await response.json();
+            throw new Error(erroJson.error || "Erro na API");
+        }
 
-// Voz
-document.getElementById('btnOuvir').addEventListener('click', () => {
-    const texto = document.getElementById('textoEntrada').value;
-    if (texto) {
-        window.speechSynthesis.cancel();
-        const fala = new SpeechSynthesisUtterance(texto);
-        fala.lang = 'pt-BR';
-        window.speechSynthesis.speak(fala);
+        return await response.blob();
     }
-});
+
+    try
