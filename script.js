@@ -1,5 +1,3 @@
-const POLLINATIONS_API_KEY = "sk_Nqx1YGWzxsCvXumU8OVgKypzc7s2r77E";
-
 document.getElementById('btnVivificar').addEventListener('click', async () => {
     const textoEntrada = document.getElementById('textoEntrada').value.trim();
     const loader = document.getElementById('loader');
@@ -7,51 +5,44 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
     const feedback = document.getElementById('feedback-txt');
 
     if (!textoEntrada) {
-        alert("Por favor, digite o tema da aula.");
+        alert("O que vamos estudar hoje?");
         return;
     }
 
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "Autenticando VIP... Forçando gasto de Pólen no FLUX...";
+    feedback.innerText = "Criando material didático visual...";
 
-    // Prompt médico blindado
-    const promptFinal = `Professional medical atlas illustration, 3D anatomical model, highly detailed, clean white background, textbook style. Topic: ${textoEntrada}. NO text, NO labels.`;
-    const seed = Math.floor(Math.random() * 9999999);
+    // PROMPT QUE SE ADAPTA A QUALQUER MATÉRIA
+    // O segredo aqui é o "vector art" e "clean style", que as IAs erram menos.
+    const promptFinal = `Clean educational 2D vector illustration, bright colors, minimalist design, white background. Subject: ${textoEntrada}. High quality, simple shapes, no text, no words.`;
+    
+    const seed = Math.floor(Math.random() * 10000);
 
-    // URL sem a chave (a chave vai no cabeçalho agora)
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux`;
+    // ALTERNATIVA: Usaremos o Pollinations com o modelo "TURBO", que é melhor para desenhos simples que o modelo padrão
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=1024&height=1024&seed=${seed}&nologo=true&model=turbo`;
 
     try {
-        // O PULO DO GATO: Mandando a chave do jeito certo (Headers)
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${POLLINATIONS_API_KEY}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Erro do servidor: ${response.status}`);
-        }
-
-        const blob = await response.blob();
-        imagem.src = URL.createObjectURL(blob);
+        // Carregamento direto
+        imagem.src = url;
 
         imagem.onload = () => {
             loader.classList.add('hidden');
             imagem.classList.remove('hidden');
-            feedback.innerText = "Sucesso! Pólen gasto e imagem VIP gerada.";
+            feedback.innerText = "Imagem gerada! Veja como ajuda no aprendizado.";
+        };
+
+        imagem.onerror = () => {
+            throw new Error();
         };
 
     } catch (error) {
-        console.error("Erro na API:", error);
         loader.classList.add('hidden');
-        feedback.innerText = "Erro ao autenticar a chave. Abra o F12 para ver os detalhes.";
+        feedback.innerText = "Houve um probleminha. Tente outro tema!";
     }
 });
 
-// Acessibilidade: Voz
+// Voz mantida para acessibilidade
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
