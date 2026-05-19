@@ -1,3 +1,6 @@
+// Substitua pelo seu token que você pegou no Hugging Face
+const HF_TOKEN = "COLE_AQUI_SEU_TOKEN_HF"; 
+
 document.getElementById('btnVivificar').addEventListener('click', async () => {
     const textoEntrada = document.getElementById('textoEntrada').value.trim();
     const loader = document.getElementById('loader');
@@ -11,38 +14,42 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
 
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "Criando material didático visual...";
+    feedback.innerText = "Hugging Face está criando sua ilustração...";
 
-    // PROMPT QUE SE ADAPTA A QUALQUER MATÉRIA
-    // O segredo aqui é o "vector art" e "clean style", que as IAs erram menos.
-    const promptFinal = `Clean educational 2D vector illustration, bright colors, minimalist design, white background. Subject: ${textoEntrada}. High quality, simple shapes, no text, no words.`;
-    
-    const seed = Math.floor(Math.random() * 10000);
-
-    // ALTERNATIVA: Usaremos o Pollinations com o modelo "TURBO", que é melhor para desenhos simples que o modelo padrão
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptFinal)}?width=1024&height=1024&seed=${seed}&nologo=true&model=turbo`;
+    // Prompt otimizado para o Stable Diffusion (Focado em Educação)
+    const promptFinal = `High-quality educational illustration, clean 2D vector style, white background, vibrant colors. Subject: ${textoEntrada}. Professional graphic design, no text, no blurry parts.`;
 
     try {
-        // Carregamento direto
-        imagem.src = url;
+        const response = await fetch(
+            "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+            {
+                headers: { Authorization: `Bearer ${HF_TOKEN}` },
+                method: "POST",
+                body: JSON.stringify({ inputs: promptFinal }),
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Aguarde um momento, a IA está acordando...");
+        }
+
+        const blob = await response.blob();
+        imagem.src = URL.createObjectURL(blob);
 
         imagem.onload = () => {
             loader.classList.add('hidden');
             imagem.classList.remove('hidden');
-            feedback.innerText = "Imagem gerada! Veja como ajuda no aprendizado.";
-        };
-
-        imagem.onerror = () => {
-            throw new Error();
+            feedback.innerText = "Ilustração pronta para a aula!";
         };
 
     } catch (error) {
+        console.error(error);
         loader.classList.add('hidden');
-        feedback.innerText = "Houve um probleminha. Tente outro tema!";
+        feedback.innerText = "A IA está carregando. Tente novamente em 30 segundos.";
     }
 });
 
-// Voz mantida para acessibilidade
+// Mantivemos a função de voz para acessibilidade
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
