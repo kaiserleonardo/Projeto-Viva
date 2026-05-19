@@ -1,5 +1,5 @@
 // Substitua pelo seu token que você pegou no Hugging Face
-const HF_TOKEN = "COLE_AQUI_SEU_TOKEN_HF"; 
+const HF_TOKEN = "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"; 
 
 document.getElementById('btnVivificar').addEventListener('click', async () => {
     const textoEntrada = document.getElementById('textoEntrada').value.trim();
