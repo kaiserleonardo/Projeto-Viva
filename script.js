@@ -12,17 +12,17 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
         return;
     }
 
-    // Preparação da interface
+    // Reset de Interface
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "Solicitando imagem ao Hugging Face...";
+    feedback.innerText = "Conectando ao Hugging Face...";
 
-    // Prompt otimizado: Simples e direto para evitar confusão da IA
-    const promptFinal = `Professional educational illustration of ${textoEntrada}, high quality, 3D render style, clean white background, vibrant colors, sharp focus, no text, no labels.`;
+    // Prompt Otimizado
+    const promptFinal = `Educational illustration of ${textoEntrada}, high quality, vibrant colors, white background, no text, no labels.`;
 
     async function buscarImagem(dados) {
         const response = await fetch(
-            "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+            "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
             {
                 headers: { 
                     "Authorization": `Bearer ${HF_TOKEN}`,
@@ -33,16 +33,14 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
             }
         );
 
-        // Se o modelo estiver carregando (Erro 503), ele tenta de novo em 5 segundos
         if (response.status === 503) {
-            feedback.innerText = "O servidor está ligando... aguarde 5 segundos.";
+            feedback.innerText = "IA acordando... aguarde 5 segundos.";
             await new Promise(res => setTimeout(res, 5000));
             return buscarImagem(dados);
         }
 
         if (!response.ok) {
-            const erroJson = await response.json();
-            throw new Error(erroJson.error || "Erro na API");
+            throw new Error("Erro na conexão com o servidor.");
         }
 
         return await response.blob();
@@ -57,17 +55,17 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
         imagem.onload = () => {
             loader.classList.add('hidden');
             imagem.classList.remove('hidden');
-            feedback.innerText = "Ilustração gerada com sucesso!";
+            feedback.innerText = "Imagem gerada!";
         };
 
     } catch (error) {
-        console.error("Erro detalhado:", error);
+        console.error(error);
         loader.classList.add('hidden');
-        feedback.innerText = "Erro: " + error.message;
+        feedback.innerText = "Erro ao carregar. Tente novamente.";
     }
 });
 
-// FUNÇÃO DE VOZ MANTIDA
+// FUNÇÃO DE VOZ
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
