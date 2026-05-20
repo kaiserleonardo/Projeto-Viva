@@ -1,74 +1,53 @@
-// CHAVE API HUGGING FACE
-const HF_TOKEN = "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"; 
+const HF_TOKEN = "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";
 
-document.getElementById('btnVivificar').addEventListener('click', async () => {
-    const textoEntrada = document.getElementById('textoEntrada').value.trim();
+async function geradorDeImagem() {
+    const entrada = document.getElementById('textoEntrada');
     const loader = document.getElementById('loader');
     const imagem = document.getElementById('imagemGerada');
     const feedback = document.getElementById('feedback-txt');
 
-    if (!textoEntrada) {
-        alert("Por favor, digite o tema da aula.");
+    if (!entrada.value.trim()) {
+        alert("Digite um tema!");
         return;
     }
 
-    // Preparação da interface
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "Solicitando imagem ao Hugging Face...";
-
-    // Prompt otimizado: Simples e direto para evitar confusão da IA
-    const promptFinal = `Professional educational illustration of ${textoEntrada}, high quality, 3D render style, clean white background, vibrant colors, sharp focus, no text, no labels.`;
-
-    async function buscarImagem(dados) {
-        const response = await fetch(
-            "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
-            {
-                headers: { 
-                    "Authorization": `Bearer ${HF_TOKEN}`,
-                    "Content-Type": "application/json"
-                },
-                method: "POST",
-                body: JSON.stringify(dados),
-            }
-        );
-
-        // Se o modelo estiver carregando (Erro 503), ele tenta de novo em 5 segundos
-        if (response.status === 503) {
-            feedback.innerText = "O servidor está ligando... aguarde 5 segundos.";
-            await new Promise(res => setTimeout(res, 5000));
-            return buscarImagem(dados);
-        }
-
-        if (!response.ok) {
-            const erroJson = await response.json();
-            throw new Error(erroJson.error || "Erro na API");
-        }
-
-        return await response.blob();
-    }
+    feedback.innerText = "Processando...";
 
     try {
-        const blob = await buscarImagem({ inputs: promptFinal });
-        const urlFinal = URL.createObjectURL(blob);
-        
-        imagem.src = urlFinal;
+        const response = await fetch("https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5", {
+            headers: { 
+                "Authorization": "Bearer " + HF_TOKEN,
+                "Content-Type": "application/json" 
+            },
+            method: "POST",
+            body: JSON.stringify({ inputs: entrada.value.trim() })
+        });
 
+        if (response.status === 503) {
+            feedback.innerText = "IA acordando... aguarde.";
+            setTimeout(geradorDeImagem, 5000);
+            return;
+        }
+
+        const blob = await response.blob();
+        imagem.src = URL.createObjectURL(blob);
+        
         imagem.onload = () => {
             loader.classList.add('hidden');
             imagem.classList.remove('hidden');
-            feedback.innerText = "Ilustração gerada com sucesso!";
+            feedback.innerText = "Pronto!";
         };
-
-    } catch (error) {
-        console.error("Erro detalhado:", error);
+    } catch (e) {
         loader.classList.add('hidden');
-        feedback.innerText = "Erro: " + error.message;
+        feedback.innerText = "Erro na rede.";
     }
-});
+}
 
-// FUNÇÃO DE VOZ MANTIDA
-document.getElementById('btnOuvir').addEventListener('click', () => {
+document.getElementById('btnVivificar').onclick = geradorDeImagem;
+
+document.getElementById('btnOuvir').onclick = function() {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
         window.speechSynthesis.cancel();
@@ -76,4 +55,4 @@ document.getElementById('btnOuvir').addEventListener('click', () => {
         fala.lang = 'pt-BR';
         window.speechSynthesis.speak(fala);
     }
-});
+};
