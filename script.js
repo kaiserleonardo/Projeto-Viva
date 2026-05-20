@@ -1,72 +1,84 @@
-// 1. Configuração (Substitua pela URL e Key da nova API escolhida)
-const API_URL = https://gen.pollinations.ai; 
-const API_KEY = sk_6Rf53sRduQFXpJYLWDgGhbNFXkHp9XnF;
+document.addEventListener('DOMContentLoaded', () => {
 
-// 2. Função Principal
-document.getElementById('btnVivificar').addEventListener('click', async () => {
-    const textoEntrada = document.getElementById('textoEntrada').value.trim();
-    const loader = document.getElementById('loader');
-    const imagem = document.getElementById('imagemGerada');
+    // 1. Configuração da API DeepInfra
+    const API_URL = "https://api.deepinfra.com/v1/inference/black-forest-labs/FLUX.1-schnell"; 
+    const API_KEY = "QyqmCsVv8M46n2o19XS5hgNmwLHvI5op"; 
+
+    // Mapeamento dos elementos do seu HTML
+    const btnVivificar = document.getElementById('btnVivificar');
+    const btnOuvir = document.getElementById('btnOuvir');
+    const textoEntrada = document.getElementById('textoEntrada');
+    const imagemGerada = document.getElementById('imagemGerada');
     const feedback = document.getElementById('feedback-txt');
+    const loader = document.getElementById('loader');
 
-    if (!textoEntrada) {
-        alert("Por favor, digite o tema da aula.");
-        return;
-    }
+    // 2. Função Principal: Gerar Imagem
+    btnVivificar.addEventListener('click', async () => {
+        const textoEntradaValor = textoEntrada.value.trim();
 
-    // Preparação visual
-    loader.classList.remove('hidden');
-    imagem.classList.add('hidden');
-    feedback.innerText = "IA preparando a imagem educativa...";
-
-    // Prompt otimizado para educação inclusiva
-    const promptFinal = `Educational illustration of ${textoEntrada}, high quality, vibrant colors, white background, simple style for kids, no text.`;
-
-    try {
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                prompt: promptFinal,
-                n: 1,
-                size: "512x512"
-            })
-        });
-
-        if (!response.ok) {
-            const erroDetalhado = await response.json();
-            throw new Error(erroDetalhado.error?.message || "Erro na API");
+        if (!textoEntradaValor) {
+            alert("Por favor, digite o que você aprendeu hoje.");
+            return;
         }
 
-        const data = await response.json();
-        
-        // A maioria das APIs retorna um campo 'url' ou 'image_url'
-        const urlImagem = data.url || data.images[0].url || data.data[0].url;
+        // Interface: Mostra que está carregando
+        if (loader) loader.classList.remove('hidden');
+        imagemGerada.classList.add('hidden');
+        feedback.innerText = "A inteligência artificial está criando sua imagem...";
 
-        imagem.src = urlImagem;
-        imagem.onload = () => {
-            loader.classList.add('hidden');
-            imagem.classList.remove('hidden');
-            feedback.innerText = "Imagem carregada com sucesso!";
-        };
+        // Criando o prompt focado em educação
+        const promptFinal = `A simple, colorful educational illustration of ${textoEntradaValor}, high quality, vibrant colors, white background, no text, child-friendly style.`;
 
-    } catch (error) {
-        console.error("Erro na requisição:", error);
-        loader.classList.add('hidden');
-        feedback.innerText = "Erro: " + error.message;
-    }
-});
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    prompt: promptFinal
+                })
+            });
 
-// 3. Função de Voz (Esta parte está perfeita!)
-document.getElementById('btnOuvir').addEventListener('click', () => {
-    const texto = document.getElementById('textoEntrada').value;
-    if (texto) {
-        window.speechSynthesis.cancel();
-        const fala = new SpeechSynthesisUtterance(texto);
-        fala.lang = 'pt-BR';
-        window.speechSynthesis.speak(fala);
-    }
+            if (!response.ok) {
+                const erroDados = await response.json();
+                throw new Error(erroDados.error || "Erro na conexão com a DeepInfra");
+            }
+
+            const data = await response.json();
+            
+            // Na DeepInfra, a imagem vem dentro do array 'images'
+            const urlImagem = data.images[0]; 
+
+            // Atribui a imagem ao elemento <img>
+            imagemGerada.src = urlImagem;
+            
+            imagemGerada.onload = () => {
+                if (loader) loader.classList.add('hidden');
+                imagemGerada.classList.remove('hidden');
+                feedback.innerText = "Imagem gerada com sucesso!";
+            };
+
+        } catch (error) {
+            console.error("Erro detalhado:", error);
+            if (loader) loader.classList.add('hidden');
+            feedback.innerText = "Erro: " + error.message;
+            alert("Houve um problema ao gerar a imagem. Verifique se você ainda tem créditos na DeepInfra ou se a rede do colégio bloqueou o acesso.");
+        }
+    });
+
+    // 3. Função de Voz (Acessibilidade)
+    btnOuvir.addEventListener('click', () => {
+        const texto = textoEntrada.value;
+        if (texto) {
+            window.speechSynthesis.cancel();
+            const fala = new SpeechSynthesisUtterance(texto);
+            fala.lang = 'pt-BR';
+            fala.rate = 0.9; // Velocidade mais calma para facilitar a compreensão
+            window.speechSynthesis.speak(fala);
+        } else {
+            alert("Digite algo para eu ler!");
+        }
+    });
 });
