@@ -1,7 +1,7 @@
 // 1. Configuração da Chave
 async function gerarImagem() {
   try {
-    const response = await fetch(https://gen.pollinations.ai/image/a%20cat%20in%20space?model=flux, {
+    const response = await fetch("https://gen.pollinations.ai/image/a%20cat%20in%20space?model=flux", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
