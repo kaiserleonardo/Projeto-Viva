@@ -1,5 +1,27 @@
 // 1. Configuração da Chave
-const HF_TOKEN = "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"; 
+async function gerarImagem() {
+  try {
+    const response = await fetch("https://gen.pollinations.ai/image/a%20cat%20in%20space?model=flux", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer sk_4soEPmFACFCtPVWdDoE7wJkZcoAJfH64"
+      },
+      body: JSON.stringify({ prompt: textoDigitado })
+    });
+
+    if (!response.ok) {
+        throw new Error(`Erro na API: ${response.status}`);
+    }
+
+    const data = await response.json();
+    // lógico para exibir a imagem...
+    
+  } catch (error) {
+    console.error("Erro detalhado:", error);
+    document.getElementById("status").innerText = "Erro: " + error.message;
+  }
+} 
 
 // 2. Função Principal (Gerar Imagem)
 document.getElementById('btnVivificar').addEventListener('click', async () => {
