@@ -1,6 +1,6 @@
 // 1. Configuração (Substitua pela URL e Key da nova API escolhida)
 const API_URL = https://gen.pollinations.ai; 
-const API_KEY = sk_4soEPmFACFCtPVWdDoE7wJkZcoAJfH64;
+const API_KEY = sk_6Rf53sRduQFXpJYLWDgGhbNFXkHp9XnF;
 
 // 2. Função Principal
 document.getElementById('btnVivificar').addEventListener('click', async () => {
