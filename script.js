@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Configuração SiliconFlow com a sua chave
+    // 1. Configuração SiliconFlow (Usando SDXL que é mais estável)
     const API_URL = "https://api.siliconflow.cn/v1/images/generations"; 
     const API_KEY = "sk-ullcbuqyyyhbedlsnmgvlbitomdrskfmchfneihlibklnzls"; 
 
@@ -16,18 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const promptRaw = textoEntrada.value.trim();
 
         if (!promptRaw) {
-            alert("Por favor, digite o tema da aula para vivificar!");
+            alert("Por favor, digite o tema da aula!");
             return;
         }
 
         // Interface: Mostra carregamento
         if (loader) loader.classList.remove('hidden');
         imagemGerada.classList.add('hidden');
-        feedback.innerText = "A IA está desenhando sua aula...";
+        feedback.innerText = "Conectando ao servidor estável...";
 
         try {
-            // Prompt otimizado para o projeto V.I.V.A
-            const promptFinal = `Educational illustration of ${promptRaw}, vibrant colors, simple shapes, white background, high quality, 4k, digital art style, no text.`;
+            const promptFinal = `Educational illustration, ${promptRaw}, vibrant colors, white background, simple for kids, high quality.`;
 
             const response = await fetch(API_URL, {
                 method: "POST",
@@ -36,61 +35,57 @@ document.addEventListener('DOMContentLoaded', () => {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    model: "black-forest-labs/FLUX.1-schnell", // O modelo mais rápido da atualidade
+                    // Trocamos para o SDXL que raramente fica "indisponível"
+                    model: "stabilityai/stable-diffusion-xl-base-1.0",
                     prompt: promptFinal,
                     batch_size: 1,
-                    width: 1024,
-                    height: 1024
+                    image_size: "1024x1024" 
                 })
             });
 
             if (!response.ok) {
                 const erroData = await response.json();
-                console.error("Detalhes do erro:", erroData);
-                throw new Error(erroData.message || "Erro na conexão com a SiliconFlow");
+                console.error("Erro detalhado:", erroData);
+                // Se der erro de modelo, o código vai cair no catch
+                throw new Error(erroData.message || "Servidor ocupado");
             }
 
             const data = await response.json();
-            console.log("Resposta recebida:", data);
+            
+            // Pega a URL da imagem (padrão SiliconFlow)
+            const urlImagem = data.images[0].url;
 
-            // Na SiliconFlow, a URL costuma vir em data.images[0].url
-            const urlImagem = data.images[0].url || data.images[0];
+            if (!urlImagem) throw new Error("URL da imagem não encontrada.");
 
-            if (!urlImagem) throw new Error("Imagem não encontrada na resposta.");
-
-            // Atribui a imagem ao elemento HTML
             imagemGerada.src = urlImagem;
             
             imagemGerada.onload = () => {
                 if (loader) loader.classList.add('hidden');
                 imagemGerada.classList.remove('hidden');
-                feedback.innerText = "Aula vivificada com sucesso!";
+                feedback.innerText = "Aula vivificada!";
             };
 
         } catch (error) {
-            console.error("Erro completo:", error);
+            console.error("Erro capturado:", error);
             if (loader) loader.classList.add('hidden');
             
-            // Se der erro de rede (bloqueio da escola), avisa o usuário
-            if (error.message.includes("fetch") || error.message.includes("Network")) {
-                feedback.innerText = "A rede da escola bloqueou a IA. Tente usar o roteador do celular.";
+            // Mensagem personalizada para te ajudar
+            if (error.message.includes("Model is not available")) {
+                feedback.innerText = "A IA está em manutenção. Tente novamente em 1 minuto.";
             } else {
                 feedback.innerText = "Erro: " + error.message;
             }
         }
     });
 
-    // 3. Função de Voz (Acessibilidade)
+    // 3. Função de Voz
     btnOuvir.addEventListener('click', () => {
         const texto = textoEntrada.value;
         if (texto) {
             window.speechSynthesis.cancel();
             const fala = new SpeechSynthesisUtterance(texto);
             fala.lang = 'pt-BR';
-            fala.rate = 0.9; 
             window.speechSynthesis.speak(fala);
-        } else {
-            alert("Escreva algo para eu ler primeiro!");
         }
     });
 });
