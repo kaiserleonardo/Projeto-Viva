@@ -1,10 +1,7 @@
-console.log("V.I.V.A. Carregado com Sucesso!");
+// CHAVE API HUGGING FACE
+const HF_TOKEN = "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"; 
 
-// 1. Configuração da Chave
-const HF_TOKEN = "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"; 
-
-// 2. Função Principal
-const geradorDeImagem = async () => {
+document.getElementById('btnVivificar').addEventListener('click', async () => {
     const textoEntrada = document.getElementById('textoEntrada').value.trim();
     const loader = document.getElementById('loader');
     const imagem = document.getElementById('imagemGerada');
@@ -15,52 +12,62 @@ const geradorDeImagem = async () => {
         return;
     }
 
+    // Preparação da interface
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "IA processando... aguarde.";
+    feedback.innerText = "Solicitando imagem ao Hugging Face...";
 
-    const promptFinal = `Educational illustration of ${textoEntrada}, high quality, vibrant colors, white background, no text.`;
+    // Prompt otimizado: Simples e direto para evitar confusão da IA
+    const promptFinal = `Professional educational illustration of ${textoEntrada}, high quality, 3D render style, clean white background, vibrant colors, sharp focus, no text, no labels.`;
 
-    try {
+    async function buscarImagem(dados) {
         const response = await fetch(
-            "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
+            "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
             {
                 headers: { 
                     "Authorization": `Bearer ${HF_TOKEN}`,
                     "Content-Type": "application/json"
                 },
                 method: "POST",
-                body: JSON.stringify({ inputs: promptFinal }),
+                body: JSON.stringify(dados),
             }
         );
 
+        // Se o modelo estiver carregando (Erro 503), ele tenta de novo em 5 segundos
         if (response.status === 503) {
-            feedback.innerText = "Servidor acordando... tentando de novo em 5s.";
-            setTimeout(geradorDeImagem, 5000);
-            return;
+            feedback.innerText = "O servidor está ligando... aguarde 5 segundos.";
+            await new Promise(res => setTimeout(res, 5000));
+            return buscarImagem(dados);
         }
 
-        if (!response.ok) throw new Error("Erro na API");
+        if (!response.ok) {
+            const erroJson = await response.json();
+            throw new Error(erroJson.error || "Erro na API");
+        }
 
-        const blob = await response.blob();
-        imagem.src = URL.createObjectURL(blob);
+        return await response.blob();
+    }
+
+    try {
+        const blob = await buscarImagem({ inputs: promptFinal });
+        const urlFinal = URL.createObjectURL(blob);
+        
+        imagem.src = urlFinal;
 
         imagem.onload = () => {
             loader.classList.add('hidden');
             imagem.classList.remove('hidden');
-            feedback.innerText = "Pronto!";
+            feedback.innerText = "Ilustração gerada com sucesso!";
         };
 
     } catch (error) {
-        console.error(error);
+        console.error("Erro detalhado:", error);
         loader.classList.add('hidden');
-        feedback.innerText = "Erro. Tente clicar em Vivificar de novo.";
+        feedback.innerText = "Erro: " + error.message;
     }
-};
+});
 
-// 3. Ouvintes de Eventos (Botões)
-document.getElementById('btnVivificar').addEventListener('click', geradorDeImagem);
-
+// FUNÇÃO DE VOZ MANTIDA
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
