@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Configuração da API
-    const API_URL = "https://api.deepinfra.com/v1/inference/stabilityai/stable-diffusion-xl-base-1.0"; 
-    const API_KEY = "QyqmCsVv8M46n2o19XS5hgNmwLHvI5op"; 
+    // 1. Configuração SiliconFlow com a sua chave
+    const API_URL = "https://api.siliconflow.cn/v1/images/generations"; 
+    const API_KEY = "sk-ullcbuqyyyhbedlsnmgvlbitomdrskfmchfneihlibklnzls"; 
 
     const btnVivificar = document.getElementById('btnVivificar');
     const btnOuvir = document.getElementById('btnOuvir');
@@ -11,23 +11,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedback = document.getElementById('feedback-txt');
     const loader = document.getElementById('loader');
 
-    // 2. Função de Gerar Imagem (OLHE O ASYNC AQUI ABAIXO)
+    // 2. Função de Gerar Imagem
     btnVivificar.addEventListener('click', async () => {
-        const textoParaGerar = textoEntrada.value.trim();
+        const promptRaw = textoEntrada.value.trim();
 
-        if (!textoParaGerar) {
-            alert("Por favor, digite o que você aprendeu hoje.");
+        if (!promptRaw) {
+            alert("Por favor, digite o tema da aula para vivificar!");
             return;
         }
 
+        // Interface: Mostra carregamento
         if (loader) loader.classList.remove('hidden');
         imagemGerada.classList.add('hidden');
-        feedback.innerText = "Conectando ao servidor de arte...";
+        feedback.innerText = "A IA está desenhando sua aula...";
 
         try {
-            const promptFinal = `High quality educational illustration of ${textoParaGerar}, vibrant colors, white background, 4k, simple style, no text.`;
+            // Prompt otimizado para o projeto V.I.V.A
+            const promptFinal = `Educational illustration of ${promptRaw}, vibrant colors, simple shapes, white background, high quality, 4k, digital art style, no text.`;
 
-            // O "await" aqui só funciona porque colocamos "async" lá em cima!
             const response = await fetch(API_URL, {
                 method: "POST",
                 headers: {
@@ -35,49 +36,61 @@ document.addEventListener('DOMContentLoaded', () => {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    input: promptFinal,
-                    prompt: promptFinal
+                    model: "black-forest-labs/FLUX.1-schnell", // O modelo mais rápido da atualidade
+                    prompt: promptFinal,
+                    batch_size: 1,
+                    width: 1024,
+                    height: 1024
                 })
             });
 
             if (!response.ok) {
                 const erroData = await response.json();
-                throw new Error(erroData.detail?.error || "O servidor está ocupado.");
+                console.error("Detalhes do erro:", erroData);
+                throw new Error(erroData.message || "Erro na conexão com a SiliconFlow");
             }
 
             const data = await response.json();
-            const urlImagem = data.images?.[0] || data.output?.[0] || data[0];
+            console.log("Resposta recebida:", data);
 
-            if (!urlImagem) {
-                throw new Error("A imagem não foi encontrada na resposta da IA.");
-            }
+            // Na SiliconFlow, a URL costuma vir em data.images[0].url
+            const urlImagem = data.images[0].url || data.images[0];
 
+            if (!urlImagem) throw new Error("Imagem não encontrada na resposta.");
+
+            // Atribui a imagem ao elemento HTML
             imagemGerada.src = urlImagem;
             
             imagemGerada.onload = () => {
                 if (loader) loader.classList.add('hidden');
                 imagemGerada.classList.remove('hidden');
-                feedback.innerText = "Imagem vivificada com sucesso!";
+                feedback.innerText = "Aula vivificada com sucesso!";
             };
 
         } catch (error) {
             console.error("Erro completo:", error);
             if (loader) loader.classList.add('hidden');
-            feedback.innerText = "Ops! Tente novamente em alguns segundos. Erro: " + error.message;
+            
+            // Se der erro de rede (bloqueio da escola), avisa o usuário
+            if (error.message.includes("fetch") || error.message.includes("Network")) {
+                feedback.innerText = "A rede da escola bloqueou a IA. Tente usar o roteador do celular.";
+            } else {
+                feedback.innerText = "Erro: " + error.message;
+            }
         }
     });
 
-    // 3. Função de Voz
+    // 3. Função de Voz (Acessibilidade)
     btnOuvir.addEventListener('click', () => {
         const texto = textoEntrada.value;
         if (texto) {
             window.speechSynthesis.cancel();
             const fala = new SpeechSynthesisUtterance(texto);
             fala.lang = 'pt-BR';
-            fala.rate = 0.9;
+            fala.rate = 0.9; 
             window.speechSynthesis.speak(fala);
         } else {
-            alert("Escreva algo para eu ler!");
+            alert("Escreva algo para eu ler primeiro!");
         }
     });
 });
