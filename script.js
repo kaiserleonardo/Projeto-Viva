@@ -1,29 +1,8 @@
-// 1. Configuração da Chave
-async function gerarImagem() {
-  try {
-    const response = await fetch("https://gen.pollinations.ai/image/a%20cat%20in%20space?model=flux", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer sk_4soEPmFACFCtPVWdDoE7wJkZcoAJfH64"
-      },
-      body: JSON.stringify({ prompt: textoDigitado })
-    });
+// 1. Configuração (Substitua pela URL e Key da nova API escolhida)
+const API_URL = "https://gen.pollinations.ai/image/a%20cat%20in%20space?model=flux"; 
+const API_KEY = "sk_4soEPmFACFCtPVWdDoE7wJkZcoAJfH64";
 
-    if (!response.ok) {
-        throw new Error(`Erro na API: ${response.status}`);
-    }
-
-    const data = await response.json();
-    // lógico para exibir a imagem...
-    
-  } catch (error) {
-    console.error("Erro detalhado:", error);
-    document.getElementById("status").innerText = "Erro: " + error.message;
-  }
-} 
-
-// 2. Função Principal (Gerar Imagem)
+// 2. Função Principal
 document.getElementById('btnVivificar').addEventListener('click', async () => {
     const textoEntrada = document.getElementById('textoEntrada').value.trim();
     const loader = document.getElementById('loader');
@@ -35,50 +14,53 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
         return;
     }
 
+    // Preparação visual
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "IA preparando a imagem...";
+    feedback.innerText = "IA preparando a imagem educativa...";
 
-    const promptFinal = `Educational illustration of ${textoEntrada}, high quality, vibrant colors, white background, no text, no labels.`;
-
-    async function buscarImagem(dados) {
-        const response = await fetch(
-            "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
-            {
-                headers: { 
-                    "Authorization": `Bearer ${HF_TOKEN}`,
-                    "Content-Type": "application/json"
-                },
-                method: "POST",
-                body: JSON.stringify(dados),
-            }
-        );
-
-        if (response.status === 503) {
-            feedback.innerText = "Servidor ligando... aguarde 5 segundos.";
-            await new Promise(res => setTimeout(res, 5000));
-            return buscarImagem(dados);
-        }
-
-        if (!response.ok) throw new Error("Erro na conexão.");
-        return await response.blob();
-    }
+    // Prompt otimizado para educação inclusiva
+    const promptFinal = `Educational illustration of ${textoEntrada}, high quality, vibrant colors, white background, simple style for kids, no text.`;
 
     try {
-        const blob = await buscarImagem({ inputs: promptFinal });
-        imagem.src = URL.createObjectURL(blob);
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                prompt: promptFinal,
+                n: 1,
+                size: "512x512"
+            })
+        });
+
+        if (!response.ok) {
+            const erroDetalhado = await response.json();
+            throw new Error(erroDetalhado.error?.message || "Erro na API");
+        }
+
+        const data = await response.json();
+        
+        // A maioria das APIs retorna um campo 'url' ou 'image_url'
+        const urlImagem = data.url || data.images[0].url || data.data[0].url;
+
+        imagem.src = urlImagem;
         imagem.onload = () => {
             loader.classList.add('hidden');
             imagem.classList.remove('hidden');
-            feedback.innerText = "Imagem carregada!";
+            feedback.innerText = "Imagem carregada com sucesso!";
         };
+
     } catch (error) {
+        console.error("Erro na requisição:", error);
         loader.classList.add('hidden');
-        feedback.innerText = "Erro ao carregar. Tente novamente.";
+        feedback.innerText = "Erro: " + error.message;
     }
 });
 
-// 3. Função de Voz
+// 3. Função de Voz (Esta parte está perfeita!)
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
@@ -88,5 +70,3 @@ document.getElementById('btnOuvir').addEventListener('click', () => {
         window.speechSynthesis.speak(fala);
     }
 });
-
-// FIM DO ARQUIVO - Certifique-se de copiar até esta linha!
