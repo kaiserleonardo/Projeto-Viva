@@ -1,3 +1,4 @@
+// CHAVE API HUGGING FACE
 const HF_TOKEN = "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"; 
 
 document.getElementById('btnVivificar').addEventListener('click', async () => {
@@ -7,55 +8,70 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
     const feedback = document.getElementById('feedback-txt');
 
     if (!textoEntrada) {
-        alert("Digite um tema!");
+        alert("Por favor, digite o tema da aula.");
         return;
     }
 
+    // Reset de Interface
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "Conectando ao servidor reserva...";
+    feedback.innerText = "Conectando ao Hugging Face...";
 
-    // Prompt simplificado para o modelo 1.5
-    const promptFinal = `Educational illustration, ${textoEntrada}, high quality, vibrant colors, white background, no text.`;
+    // Prompt Otimizado
+    const promptFinal = `Educational illustration of ${textoEntrada}, high quality, vibrant colors, white background, no text, no labels.`;
 
-    async function query(data) {
-        // Usando o modelo v1.5 que é MUITO mais estável para contas gratuitas
+    async function buscarImagem(dados) {
         const response = await fetch(
             "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
             {
-                headers: { Authorization: `Bearer ${HF_TOKEN}` },
+                headers: { 
+                    "Authorization": `Bearer ${HF_TOKEN}`,
+                    "Content-Type": "application/json"
+                },
                 method: "POST",
-                body: JSON.stringify(data),
+                body: JSON.stringify(dados),
             }
         );
 
-        if (response.status === 429) {
-            throw new Error("Limite de uso atingido. Espere alguns minutos.");
-        }
-
         if (response.status === 503) {
-            feedback.innerText = "Servidor acordando... tentando novamente...";
-            await new Promise(r => setTimeout(r, 5000));
-            return query(data);
+            feedback.innerText = "IA acordando... aguarde 5 segundos.";
+            await new Promise(res => setTimeout(res, 5000));
+            return buscarImagem(dados);
         }
 
-        if (!response.ok) throw new Error("Erro no servidor.");
+        if (!response.ok) {
+            throw new Error("Erro na conexão com o servidor.");
+        }
 
         return await response.blob();
     }
 
     try {
-        const blob = await query({ inputs: promptFinal });
-        imagem.src = URL.createObjectURL(blob);
+        const blob = await buscarImagem({ inputs: promptFinal });
+        const urlFinal = URL.createObjectURL(blob);
+        
+        imagem.src = urlFinal;
 
         imagem.onload = () => {
             loader.classList.add('hidden');
             imagem.classList.remove('hidden');
-            feedback.innerText = "Pronto!";
+            feedback.innerText = "Imagem gerada!";
         };
+
     } catch (error) {
-        loader.classList.add('hidden');
-        feedback.innerText = error.message;
         console.error(error);
+        loader.classList.add('hidden');
+        feedback.innerText = "Erro ao carregar. Tente novamente.";
+    }
+});
+
+// FUNÇÃO DE VOZ
+document.getElementById('btnOuvir').addEventListener('click', () => {
+    const texto = document.getElementById('textoEntrada').value;
+    if (texto) {
+        window.speechSynthesis.cancel();
+        const fala = new SpeechSynthesisUtterance(texto);
+        fala.lang = 'pt-BR';
+        window.speechSynthesis.speak(fala);
     }
 });
