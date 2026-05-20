@@ -1,6 +1,7 @@
-// CHAVE API HUGGING FACE
+// 1. Configuração da Chave
 const HF_TOKEN = "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"; 
 
+// 2. Função Principal (Gerar Imagem)
 document.getElementById('btnVivificar').addEventListener('click', async () => {
     const textoEntrada = document.getElementById('textoEntrada').value.trim();
     const loader = document.getElementById('loader');
@@ -12,12 +13,10 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
         return;
     }
 
-    // Reset de Interface
     loader.classList.remove('hidden');
     imagem.classList.add('hidden');
-    feedback.innerText = "Conectando ao Hugging Face...";
+    feedback.innerText = "IA preparando a imagem...";
 
-    // Prompt Otimizado
     const promptFinal = `Educational illustration of ${textoEntrada}, high quality, vibrant colors, white background, no text, no labels.`;
 
     async function buscarImagem(dados) {
@@ -34,38 +33,30 @@ document.getElementById('btnVivificar').addEventListener('click', async () => {
         );
 
         if (response.status === 503) {
-            feedback.innerText = "IA acordando... aguarde 5 segundos.";
+            feedback.innerText = "Servidor ligando... aguarde 5 segundos.";
             await new Promise(res => setTimeout(res, 5000));
             return buscarImagem(dados);
         }
 
-        if (!response.ok) {
-            throw new Error("Erro na conexão com o servidor.");
-        }
-
+        if (!response.ok) throw new Error("Erro na conexão.");
         return await response.blob();
     }
 
     try {
         const blob = await buscarImagem({ inputs: promptFinal });
-        const urlFinal = URL.createObjectURL(blob);
-        
-        imagem.src = urlFinal;
-
+        imagem.src = URL.createObjectURL(blob);
         imagem.onload = () => {
             loader.classList.add('hidden');
             imagem.classList.remove('hidden');
-            feedback.innerText = "Imagem gerada!";
+            feedback.innerText = "Imagem carregada!";
         };
-
     } catch (error) {
-        console.error(error);
         loader.classList.add('hidden');
         feedback.innerText = "Erro ao carregar. Tente novamente.";
     }
 });
 
-// FUNÇÃO DE VOZ
+// 3. Função de Voz
 document.getElementById('btnOuvir').addEventListener('click', () => {
     const texto = document.getElementById('textoEntrada').value;
     if (texto) {
@@ -75,3 +66,5 @@ document.getElementById('btnOuvir').addEventListener('click', () => {
         window.speechSynthesis.speak(fala);
     }
 });
+
+// FIM DO ARQUIVO - Certifique-se de copiar até esta linha!
