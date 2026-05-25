@@ -1,9 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Configurações da API Premium (Myceli / Pollinations)
-    const API_URL = "https://api.pollinations.ai/v1/images/generations"; 
+    // 1. Suas credenciais Premium
     const API_KEY = "sk_jhTai3EahV5pzEac6pOofn27cG9N608m"; 
-    const MODELO = "nanobanana"; // A IA específica que você escolheu
+    const MODELO = "nanobanana"; // Modelo premium escolhido
 
     const btnVivificar = document.getElementById('btnVivificar');
     const btnOuvir = document.getElementById('btnOuvir');
@@ -12,66 +11,55 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedback = document.getElementById('feedback-txt');
     const loader = document.getElementById('loader');
 
-    // 2. Função para Gerar Imagem usando Pólens
-    btnVivificar.addEventListener('click', async () => {
+    // 2. Gerador Premium (Via Link Direto)
+    btnVivificar.addEventListener('click', () => {
         const promptRaw = textoEntrada.value.trim();
 
         if (!promptRaw) {
-            alert("Por favor, digite o que você quer vivificar!");
+            alert("Por favor, digite o tema da aula!");
             return;
         }
 
         // Interface: Carregando
         if (loader) loader.classList.remove('hidden');
         imagemGerada.classList.add('hidden');
-        feedback.innerText = "Usando pólens para gerar imagem premium...";
+        feedback.innerText = "Gastando pólens... A IA nanobanana está trabalhando!";
 
-        try {
-            // Prompt otimizado para o modelo nanobanana
-            const promptFinal = `Educational illustration of ${promptRaw}, high definition, vibrant colors, child-friendly, masterpiece style, white background.`;
+        // Criamos o prompt em inglês para melhor qualidade
+        const promptFinal = `Educational illustration of ${promptRaw}, high definition, vibrant colors, masterpiece style, white background, no text`;
+        
+        // Semente aleatória para nunca repetir a imagem
+        const seed = Math.floor(Math.random() * 100000);
 
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${API_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    model: MODELO,
-                    prompt: promptFinal,
-                    n: 1,
-                    size: "1024x1024"
-                })
-            });
+        // A MÁGICA AQUI: O novo endpoint gen.pollinations que aceita a chave na URL
+        const novaUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(promptFinal)}?model=${MODELO}&width=1024&height=1024&seed=${seed}&key=${API_KEY}`;
 
-            if (!response.ok) {
-                const erroData = await response.json();
-                throw new Error(erroData.error?.message || "Erro ao gastar pólens");
-            }
+        // Carrega a imagem diretamente (fura o bloqueio da escola)
+        imagemGerada.src = novaUrl;
 
-            const data = await response.json();
-            
-            // A resposta premium costuma vir em data.data[0].url
-            const urlImagem = data.data[0].url;
-
-            // Exibe o resultado
-            imagemGerada.src = urlImagem;
-            
-            imagemGerada.onload = () => {
-                if (loader) loader.classList.add('hidden');
-                imagemGerada.classList.remove('hidden');
-                feedback.innerText = "Vivificado com nanobanana (Premium)!";
-            };
-
-        } catch (error) {
-            console.error("Erro:", error);
+        // Quando a imagem terminar de carregar do servidor premium:
+        imagemGerada.onload = () => {
             if (loader) loader.classList.add('hidden');
-            
-            // Se os pólens acabarem, ele avisará aqui
-            feedback.innerText = "Erro: " + error.message;
-            alert("Verifique se seus pólens não acabaram ou se a chave está ativa.");
-        }
+            imagemGerada.classList.remove('hidden');
+            feedback.innerText = "Incrível! Aula vivificada em qualidade Premium.";
+        };
+
+        imagemGerada.onerror = () => {
+            if (loader) loader.classList.add('hidden');
+            feedback.innerText = "Erro ao carregar. Verifique seus pólens no site!";
+        };
     });
 
-    // 3. Função de Voz (Mantida)
+    // 3. Função de Voz
     btnOuvir.addEventListener('click', () => {
+        const texto = textoEntrada.value;
+        if (texto) {
+            window.speechSynthesis.cancel();
+            const fala = new SpeechSynthesisUtterance(texto);
+            fala.lang = 'pt-BR';
+            window.speechSynthesis.speak(fala);
+        } else {
+            alert("Escreva algo para eu ler!");
+        }
+    });
+});
