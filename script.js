@@ -1,8 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Configurações Premium com Grok-Imagine
     const API_KEY = "sk_jhTai3EahV5pzEac6pOofn27cG9N608m"; 
-    const MODELO = "grok-imagine"; // Mudança para o modelo Grok
+    const MODELO = "nanobanana"; 
 
     const btnVivificar = document.getElementById('btnVivificar');
     const btnOuvir = document.getElementById('btnOuvir');
@@ -19,37 +18,30 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Interface: Carregando
         if (loader) loader.classList.remove('hidden');
         imagemGerada.classList.add('hidden');
-        feedback.innerText = "Solicitando ao Grok-Imagine... (Consumindo Pólens)";
+        feedback.innerText = "Gastando pólens... A IA nanobanana está trabalhando!";
 
-        // O Grok entende muito bem prompts detalhados
-        const promptFinal = `High-quality educational 3D render or illustration of ${promptRaw}, vivid cinematic colors, clear details, white background, classroom friendly style`;
-        
-        const seed = Math.floor(Math.random() * 999999);
+        const promptFinal = `Educational illustration of ${promptRaw}, high definition, vibrant colors, masterpiece style, white background, no text`;
+        const seed = Math.floor(Math.random() * 100000);
 
-        // URL para o modelo Grok usando sua chave premium
+        // O link mágico que fura bloqueios e usa seus pólens
         const novaUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(promptFinal)}?model=${MODELO}&width=1024&height=1024&seed=${seed}&key=${API_KEY}`;
 
-        // Atribui a URL à imagem
         imagemGerada.src = novaUrl;
 
-        // Sucesso no carregamento
         imagemGerada.onload = () => {
             if (loader) loader.classList.add('hidden');
             imagemGerada.classList.remove('hidden');
-            feedback.innerText = "Vivificado com Grok-Imagine!";
+            feedback.innerText = "Incrível! Aula vivificada em qualidade Premium.";
         };
 
-        // Caso ocorra erro (Ex: Pólens acabaram ou rede bloqueada)
         imagemGerada.onerror = () => {
             if (loader) loader.classList.add('hidden');
-            feedback.innerText = "Erro ao carregar o Grok. Verifique seus créditos ou a conexão.";
+            feedback.innerText = "Erro ao carregar. Verifique seus pólens no site!";
         };
     });
 
-    // Função de Voz (Mantida para acessibilidade)
     btnOuvir.addEventListener('click', () => {
         const texto = textoEntrada.value;
         if (texto) {
@@ -57,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const fala = new SpeechSynthesisUtterance(texto);
             fala.lang = 'pt-BR';
             window.speechSynthesis.speak(fala);
+        } else {
+            alert("Escreva algo para eu ler!");
         }
     });
 });
