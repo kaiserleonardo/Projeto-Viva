@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Configuração SiliconFlow (Usando SDXL que é mais estável)
     const API_URL = "https://api.siliconflow.cn/v1/images/generations"; 
     const API_KEY = "sk-ullcbuqyyyhbedlsnmgvlbitomdrskfmchfneihlibklnzls"; 
 
@@ -11,23 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedback = document.getElementById('feedback-txt');
     const loader = document.getElementById('loader');
 
-    // 2. Função de Gerar Imagem
     btnVivificar.addEventListener('click', async () => {
         const promptRaw = textoEntrada.value.trim();
+        if (!promptRaw) return alert("Digite algo!");
 
-        if (!promptRaw) {
-            alert("Por favor, digite o tema da aula!");
-            return;
-        }
-
-        // Interface: Mostra carregamento
-        if (loader) loader.classList.remove('hidden');
+        loader.classList.remove('hidden');
         imagemGerada.classList.add('hidden');
-        feedback.innerText = "Conectando ao servidor estável...";
+        feedback.innerText = "Tentando conexão com a IA...";
 
         try {
-            const promptFinal = `Educational illustration, ${promptRaw}, vibrant colors, white background, simple for kids, high quality.`;
-
             const response = await fetch(API_URL, {
                 method: "POST",
                 headers: {
@@ -35,50 +26,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    // Trocamos para o SDXL que raramente fica "indisponível"
-                    model: "stabilityai/stable-diffusion-xl-base-1.0",
-                    prompt: promptFinal,
-                    batch_size: 1,
-                    image_size: "1024x1024" 
+                    // MODELO V1.5: O mais rápido e estável para redes lentas
+                    model: "stabilityai/stable-diffusion-v1-5", 
+                    prompt: `Educational drawing of ${promptRaw}, simple, colorful, white background`,
+                    batch_size: 1
                 })
             });
 
             if (!response.ok) {
-                const erroData = await response.json();
-                console.error("Erro detalhado:", erroData);
-                // Se der erro de modelo, o código vai cair no catch
-                throw new Error(erroData.message || "Servidor ocupado");
+                const erro = await response.json();
+                throw new Error(erro.message || "Servidor ocupado.");
             }
 
             const data = await response.json();
-            
-            // Pega a URL da imagem (padrão SiliconFlow)
-            const urlImagem = data.images[0].url;
-
-            if (!urlImagem) throw new Error("URL da imagem não encontrada.");
+            const urlImagem = data.images[0].url || data.images[0];
 
             imagemGerada.src = urlImagem;
-            
             imagemGerada.onload = () => {
-                if (loader) loader.classList.add('hidden');
+                loader.classList.add('hidden');
                 imagemGerada.classList.remove('hidden');
-                feedback.innerText = "Aula vivificada!";
+                feedback.innerText = "Sucesso!";
             };
 
         } catch (error) {
-            console.error("Erro capturado:", error);
-            if (loader) loader.classList.add('hidden');
+            console.error(error);
+            loader.classList.add('hidden');
             
-            // Mensagem personalizada para te ajudar
-            if (error.message.includes("Model is not available")) {
-                feedback.innerText = "A IA está em manutenção. Tente novamente em 1 minuto.";
+            // Diagnóstico certeiro
+            if (error.message.includes("fetch") || error.name === "TypeError") {
+                feedback.innerText = "BLOQUEIO DE REDE: O Wi-Fi da escola não permite o acesso. Use o 4G do celular.";
             } else {
                 feedback.innerText = "Erro: " + error.message;
             }
         }
     });
 
-    // 3. Função de Voz
     btnOuvir.addEventListener('click', () => {
         const texto = textoEntrada.value;
         if (texto) {
