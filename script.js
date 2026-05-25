@@ -1,7 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    const API_URL = "https://api.siliconflow.cn/v1/images/generations"; 
-    const API_KEY = "sk-ullcbuqyyyhbedlsnmgvlbitomdrskfmchfneihlibklnzls"; 
+    // 1. Configurações da API Premium (Myceli / Pollinations)
+    const API_URL = "https://api.pollinations.ai/v1/images/generations"; 
+    const API_KEY = "sk_jhTai3EahV5pzEac6pOofn27cG9N608m"; 
+    const MODELO = "nanobanana"; // A IA específica que você escolheu
 
     const btnVivificar = document.getElementById('btnVivificar');
     const btnOuvir = document.getElementById('btnOuvir');
@@ -10,15 +12,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedback = document.getElementById('feedback-txt');
     const loader = document.getElementById('loader');
 
+    // 2. Função para Gerar Imagem usando Pólens
     btnVivificar.addEventListener('click', async () => {
         const promptRaw = textoEntrada.value.trim();
-        if (!promptRaw) return alert("Digite algo!");
 
-        loader.classList.remove('hidden');
+        if (!promptRaw) {
+            alert("Por favor, digite o que você quer vivificar!");
+            return;
+        }
+
+        // Interface: Carregando
+        if (loader) loader.classList.remove('hidden');
         imagemGerada.classList.add('hidden');
-        feedback.innerText = "Tentando conexão com a IA...";
+        feedback.innerText = "Usando pólens para gerar imagem premium...";
 
         try {
+            // Prompt otimizado para o modelo nanobanana
+            const promptFinal = `Educational illustration of ${promptRaw}, high definition, vibrant colors, child-friendly, masterpiece style, white background.`;
+
             const response = await fetch(API_URL, {
                 method: "POST",
                 headers: {
@@ -26,48 +37,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    // MODELO V1.5: O mais rápido e estável para redes lentas
-                    model: "stabilityai/stable-diffusion-v1-5", 
-                    prompt: `Educational drawing of ${promptRaw}, simple, colorful, white background`,
-                    batch_size: 1
+                    model: MODELO,
+                    prompt: promptFinal,
+                    n: 1,
+                    size: "1024x1024"
                 })
             });
 
             if (!response.ok) {
-                const erro = await response.json();
-                throw new Error(erro.message || "Servidor ocupado.");
+                const erroData = await response.json();
+                throw new Error(erroData.error?.message || "Erro ao gastar pólens");
             }
 
             const data = await response.json();
-            const urlImagem = data.images[0].url || data.images[0];
+            
+            // A resposta premium costuma vir em data.data[0].url
+            const urlImagem = data.data[0].url;
 
+            // Exibe o resultado
             imagemGerada.src = urlImagem;
+            
             imagemGerada.onload = () => {
-                loader.classList.add('hidden');
+                if (loader) loader.classList.add('hidden');
                 imagemGerada.classList.remove('hidden');
-                feedback.innerText = "Sucesso!";
+                feedback.innerText = "Vivificado com nanobanana (Premium)!";
             };
 
         } catch (error) {
-            console.error(error);
-            loader.classList.add('hidden');
+            console.error("Erro:", error);
+            if (loader) loader.classList.add('hidden');
             
-            // Diagnóstico certeiro
-            if (error.message.includes("fetch") || error.name === "TypeError") {
-                feedback.innerText = "BLOQUEIO DE REDE: O Wi-Fi da escola não permite o acesso. Use o 4G do celular.";
-            } else {
-                feedback.innerText = "Erro: " + error.message;
-            }
+            // Se os pólens acabarem, ele avisará aqui
+            feedback.innerText = "Erro: " + error.message;
+            alert("Verifique se seus pólens não acabaram ou se a chave está ativa.");
         }
     });
 
+    // 3. Função de Voz (Mantida)
     btnOuvir.addEventListener('click', () => {
-        const texto = textoEntrada.value;
-        if (texto) {
-            window.speechSynthesis.cancel();
-            const fala = new SpeechSynthesisUtterance(texto);
-            fala.lang = 'pt-BR';
-            window.speechSynthesis.speak(fala);
-        }
-    });
-});
