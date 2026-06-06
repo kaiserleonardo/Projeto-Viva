@@ -1,8 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     const API_KEY = "sk_jhTai3EahV5pzEac6pOofn27cG9N608m"; 
-    const MODELO = "nanobanana-pro
-        "; 
+    const MODELO = "nanobanana-pro"; 
 
     const btnVivificar = document.getElementById('btnVivificar');
     const btnOuvir = document.getElementById('btnOuvir');
